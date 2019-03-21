@@ -47,7 +47,7 @@ out
 mongo
 
 logs/
-/logs
+/logs 
 .log*
 
 npm-debug.log*
@@ -55,4 +55,4 @@ yarn-debug.log*
 yarn-error.log*
 
 # Kubernetes
-
+*secrets*.yaml

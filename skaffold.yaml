@@ -9,6 +9,7 @@ build:
 deploy:
   kubectl:
     manifests:
+    - k8s/env.yaml
     - k8s/gateway.yaml
     - k8s/nginx-ingress/ingress.yaml
     - k8s/nginx-ingress/mandatory.yaml

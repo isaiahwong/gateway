@@ -74,16 +74,8 @@ spec:
           ports:
             - name: gateway-port
               containerPort: 5000
-          env:
-          - name: NODE_ENV
-            value: "development"
-          - name: MAINTENANCE_MODE
-            value: "false"
-          - name: SVC_DISCOVERY_INTERVAL
-            value: "5000"
-          - name: ENABLE_CONSOLE_LOGS_IN_PROD
-            value: "false"
-          - name: ENABLE_CONSOLE_LOGS_IN_TEST
-            value: "true"
+          envFrom:
+          - configMapRef:
+              name: gateway-env-configmap
       # imagePullSecrets:
       # - name: gitlab-auth
