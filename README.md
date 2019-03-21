@@ -1,4 +1,4 @@
-# Stack
+# Cluster
 The Cluster is infrastructured with the microservices architecture. Each services are containerised using [Docker][docker] and orchestrated with [Kubernetes][k8s]. The infrastructure models itself with the core principles of microservices; decoupling the technology stack allowing each services to grow independetly. 
 
 # Table of Contents
