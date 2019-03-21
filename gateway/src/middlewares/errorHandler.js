@@ -1,6 +1,6 @@
 import { omit } from 'lodash';
 import logger from '../libs/logger';
-import { CustomError } from '../libs/errors';
+import { CustomError, InternalServerError } from '../libs/errors';
 
 export default function errorHandler(err, req, res, next) { // eslint-disable-line no-unused-vars
   // In case of a CustomError class, use it's data
@@ -15,6 +15,16 @@ export default function errorHandler(err, req, res, next) { // eslint-disable-li
     responseErr.name = err.name;
     responseErr.message = err.message;
   }
+
+  if (!responseErr || responseErr.httpCode >= 500) {
+    // Try to identify the error...
+    // ...
+    // Otherwise create an InternalServerError and use it
+    // we don't want to leak anything, just a generic error message
+    // Use it also in case of identified errors but with httpCode === 500
+    responseErr = new InternalServerError();
+  }
+
   // log the error
   logger.error(err, {
     method: req.method,

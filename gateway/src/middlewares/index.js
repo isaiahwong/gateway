@@ -11,8 +11,6 @@ import errorHandler from './errorHandler';
 import discovery from './discovery';
 import topLevelRoutes from './topLevelRoutes';
 
-import Proxy from '../libs/proxy';
-
 export default async function attachMiddleWares(app) {
   // trust proxy requests behind nginx.
   app.set('trust proxy', true);
@@ -33,7 +31,7 @@ export default async function attachMiddleWares(app) {
   app.use(helmet.hidePoweredBy({ setTo: '' }));
 
   // proxy api routes
-  discovery(app, Proxy);
+  discovery(app);
   app.use('/', topLevelRoutes);
 
   app.use(notFound);

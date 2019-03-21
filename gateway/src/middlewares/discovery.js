@@ -2,10 +2,8 @@ import express from 'express';
 
 import k8sClient from '../libs/k8sClient';
 
-// import logger from '../libs/logger';
+import Proxy from '../libs/proxy';
 import { InternalServerError } from '../libs/errors';
-
-/** create a proxy server */
 
 
 let router = new express.Router();
@@ -17,12 +15,17 @@ let servicesCount = 0;
  * @metadata `labels` `namespace` `name`
  * @spec `ports`
  */
-async function discoverRoutes(Proxy) {
+async function discoverRoutes() {
   const services = await k8sClient.getServices('default');
+
+  // Reinstantiates and resets the routing paths
+  if (servicesCount === 1 && services.length === 0) {
+    router = new express.Router();
+    servicesCount = 0;
+  }
 
   if (services && services.length && servicesCount !== services.length) {
     servicesCount = services.length;
-    /** Creates a new router on new service discovered */
     router = new express.Router();
 
     services.forEach((service) => {
@@ -68,11 +71,11 @@ async function discoverRoutes(Proxy) {
   }
 }
 
-export default async function discovery(app, Proxy) {
+export default async function proxy(app) {
   // Set reference to router 
   app.use((req, res, next) => router(req, res, next));
-  discoverRoutes(Proxy);
+  discoverRoutes();
 
   // Discover routes at a 5 second interval
-  setInterval(discoverRoutes, process.env.SVC_DISCOVERY_INTERVAL || 5000);
+  setInterval(discoverRoutes, 5000);
 }

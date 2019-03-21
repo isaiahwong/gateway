@@ -1,5 +1,8 @@
 import HttpProxy from 'http-proxy';
 
+import { NotFound } from './errors';
+import errorHandler from '../middlewares/errorHandler';
+
 class Proxy {
   constructor() {
     this.serverInterface = HttpProxy.createProxyServer({
@@ -14,13 +17,15 @@ class Proxy {
     return this.serverInterface.eventNames();
   }
   
+  /**
+   * Handles Not found route with errorHandler middleware
+   */
   _onError() {
-    this.serverInterface.on('error', (err, req, res) => {
-      res.writeHead(500, {
-        'Content-Type': 'text/plain'
-      });
-    
-      res.end('Something went wrong. And we are reporting a custom error message.');
+    this.serverInterface.on('error', (err, req, res, next) => {
+      if (err.code === 'ENOTFOUND') {
+        err = new NotFound();
+      }
+      errorHandler(err, req, res, next);
     });
   }
 

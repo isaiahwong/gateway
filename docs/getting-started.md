@@ -16,14 +16,14 @@ Follow the [Install Kubernetes](./install-k8s.md) guide.
 
 ### Run the build script
 ```
-chmod +x ./scripts/dev/build.sh
-./scripts/dev/build.sh
+chmod +x ./build.sh
+./build.sh
 ```
 
-### Run the run script
+### Run the run dev script
 ```
-chmod +x ./scripts/dev/run.sh
-./scripts/dev/run.sh
+chmod +x ./dev.sh
+./dev.sh
 ```
 
 ### Get the ip of the cluster

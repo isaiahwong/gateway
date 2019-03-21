@@ -14,11 +14,11 @@ See the detailed [Getting Started Guide](./docs/getting-started.md)
 
 ## Quickstart
 ```
-chmod +x ./scripts/dev/build.sh
-./scripts/dev/build.sh
+chmod +x ./build.sh
+./build.sh
 
-chmod +x ./scripts/dev/run.sh
-./scripts/dev/run.sh
+chmod +x ./dev.sh
+./dev.sh
 ```
 
 ### Running with [Skaffold][skaffold]
