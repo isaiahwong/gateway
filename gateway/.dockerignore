@@ -1,0 +1,15 @@
+node_modules
+.dockerignore
+Dockerfile
+Dockerfile.dev
+package-lock.json
+npm-debug.log
+.git
+.hg
+.svn
+logs
+test
+.env.example
+.eslintrc.js
+Makefile
+README.md

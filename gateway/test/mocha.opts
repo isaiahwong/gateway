@@ -1,0 +1,6 @@
+--colors
+--reporter nyan
+--require @babel/polyfill
+--require @babel/register
+--require ./test/helpers/globals
+--exit

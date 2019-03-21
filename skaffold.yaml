@@ -1,0 +1,14 @@
+apiVersion: skaffold/v1beta7
+kind: Config
+build:
+  artifacts:
+  - image: registry.gitlab.com/isaiahwong/cluster/api/gateway
+    context: gateway
+    # docker:
+    #   dockerfile: Dockerfile.dev
+deploy:
+  kubectl:
+    manifests:
+    - k8s/gateway.yaml
+    - k8s/nginx-ingress/ingress.yaml
+    - k8s/nginx-ingress/mandatory.yaml
