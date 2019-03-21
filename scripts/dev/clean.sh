@@ -3,9 +3,9 @@
 eval $(minikube docker-env)
 
 # api/gateway
-docker rmi $(docker images | grep registry.gitlab.com/isaiahwong/cluster/api/gateway) --force
+docker rmi $(docker images | grep registry.gitlab.com/isaiahwong/cluster/api/gateway) --force 2>/dev/null 
 
-docker rmi $( docker images | grep '<none>') --force
+docker rmi $( docker images | grep '<none>') --force 2>/dev/null 
 
 # Deletes dangling Images
 docker system prune -f --all
