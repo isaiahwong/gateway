@@ -54,7 +54,7 @@ Read more on the Gateway [Documentation](./gateway/README.md)
 ```
 
 # Technology Stack
-* [Node.js][node],[JavaScript][js], [Kubernetes][k8s] — core platform and dev tools
+* [Node.js][node], [Kubernetes][k8s] — core platform and dev tools
 * [Express][express] etc. — common HTTP-server features
 
 
@@ -71,6 +71,8 @@ Read more on the Gateway [Documentation](./gateway/README.md)
 [redux]: https://redux.js.org/introduction
 
 [node]: https://nodejs.org
+[express]: http://expressjs.com/
+
 [skaffold]: https://github.com/GoogleContainerTools/skaffold
 [mailer]: https://nodemailer.com/
 
