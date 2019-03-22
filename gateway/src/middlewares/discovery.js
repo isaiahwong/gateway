@@ -77,5 +77,5 @@ export default async function proxy(app) {
   discoverRoutes();
 
   // Discover routes at a 5 second interval
-  setInterval(discoverRoutes, 5000);
+  setInterval(discoverRoutes, process.env.SVC_DISCOVERY_INTERVAL || 5000);
 }
