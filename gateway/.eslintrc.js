@@ -1,4 +1,11 @@
 module.exports = {
+
+  globals: {
+    __DEV__: true,
+    __PROD__: true,
+    __TEST__: true
+  },
+
   "env": {
     "node": true,
   },

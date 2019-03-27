@@ -10,7 +10,6 @@ import _ from 'lodash';
 
 import { CustomError } from './errors';
 
-const IS_PROD = process.env.NODE_ENV === 'production';
 const IS_TEST = process.env.NODE_ENV === 'test';
 
 const ENABLE_CONSOLE_LOGS_IN_TEST = process.env.ENABLE_CONSOLE_LOGS_IN_TEST === 'true';
@@ -124,7 +123,7 @@ const logger = winston.createLogger({
   ]
 });
 
-if (IS_PROD) {
+if (__PROD__) {
   if (ENABLE_CONSOLE_LOGS_IN_PROD) {
     logger
       .add(consoleConfig);

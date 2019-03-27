@@ -17,8 +17,7 @@ app.use(helmet());
 // Setup locales
 setupLanguage();
 
-const IS_PROD = process.env.NODE_ENV === 'production';
-const appEnv = IS_PROD ? 'production' : 'development';
+const appEnv = __PROD__ ? 'production' : 'development';
 
 import attachMiddlewares from './middlewares';
 

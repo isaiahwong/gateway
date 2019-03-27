@@ -1,14 +1,19 @@
 import cors from 'cors';
+import { NotAuthorized } from '../libs/errors';
 
-const whitelist = [process.env.DOMAIN, `http://localhost:${process.env.PORT}`];
+const whitelist = [
+  process.env.DOMAIN, 
+  process.env.DEV_CLIENT,
+  `http://localhost:${process.env.PORT}`,
+];
 
 const corsOptions = {
   origin: (origin, cb) => {
-    if (whitelist.indexOf(origin) !== -1 || !origin) {
+    if (whitelist.indexOf(origin) !== -1 || (!origin && __DEV__)) {
       cb(null, true);
     } 
     else {
-      cb(new Error('Not allowed by CORS'));
+      cb(new NotAuthorized());
     }
   }
 };
