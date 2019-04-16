@@ -1,14 +1,19 @@
 import express from 'express';
+import Path from 'path';
 
 import k8sClient from '../libs/k8sClient';
-
 import Proxy from '../libs/proxy';
+import Grpc from '../libs/grpc';
 import { InternalServerError } from '../libs/errors';
 
+const PROTO_PATH = Path.join(__dirname, '..', '..', 'proto/');
+const INCLUDE_PATH = '../../proto/'; // Relative Path only
 
 let router = new express.Router();
 /** Service Counter to keep track of existing services. */
 let servicesCount = 0;
+
+let protos = []; // Cache it
 
 /**
  * Retrieves routes from k8s services and maps the paths for proxying
@@ -52,7 +57,7 @@ async function discoverRoutes() {
       }
 
       const { path, version, secured } = labels;
-
+      
       if (!path) {
         throw new InternalServerError(`path not defined for ${namespace}:${name}.`);
       }
@@ -75,6 +80,9 @@ export default async function proxy(app) {
   // Set reference to router 
   app.use((req, res, next) => router(req, res, next));
   discoverRoutes();
+
+  const grpc = new Grpc();
+  protos = grpc.loadProtos(PROTO_PATH, [INCLUDE_PATH]);
 
   // Discover routes at a 5 second interval
   setInterval(discoverRoutes, process.env.SVC_DISCOVERY_INTERVAL || 5000);

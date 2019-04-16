@@ -1,5 +1,6 @@
 import compression from 'compression';
 import helmet from 'helmet';
+import path from 'path';
 
 // Middlewares
 import morgan from './morgan';
@@ -32,6 +33,7 @@ export default async function attachMiddleWares(app) {
 
   // proxy api routes
   discovery(app);
+
   app.use('/', topLevelRoutes);
 
   app.use(notFound);
