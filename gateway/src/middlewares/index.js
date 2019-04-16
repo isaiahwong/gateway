@@ -1,6 +1,5 @@
 import compression from 'compression';
 import helmet from 'helmet';
-import path from 'path';
 
 // Middlewares
 import morgan from './morgan';
@@ -12,7 +11,7 @@ import errorHandler from './errorHandler';
 import discovery from './discovery';
 import topLevelRoutes from './topLevelRoutes';
 
-export default async function attachMiddleWares(app) {
+export default async function attachMiddleWares(app, server, args) {
   // trust proxy requests behind nginx.
   app.set('trust proxy', true);
 
@@ -32,7 +31,7 @@ export default async function attachMiddleWares(app) {
   app.use(helmet.hidePoweredBy({ setTo: '' }));
 
   // proxy api routes
-  discovery(app);
+  discovery(app, args.protos);
 
   app.use('/', topLevelRoutes);
 

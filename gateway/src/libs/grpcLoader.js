@@ -3,22 +3,7 @@ import grpc from 'grpc';
 
 import * as protoLoader from './protoLoader';
 
-class Grpc {
-  static handler(call, callback) {
-    try {
-      callback(null, '');
-    }
-    catch (err) {
-      console.warn(err);
-      callback(err);
-    }
-  }
-
-  listen() {
-    this.server.bind(`0.0.0.0:${this.port}`, grpc.ServerCredentials.createInsecure());
-    this.server.start();
-  }
-
+class GrpcLoader {
   loadProto(fileName, include) {
     const options = {
       keepCase: true,
@@ -49,7 +34,6 @@ class Grpc {
         }
         else if (fileName.match(/\.proto$/) && !filePath.match(/third_party/)) { // exclude third party
           const proto = this.loadProto(fileName, include);
-          console.log(proto.auth.AuthService)
           protos.push(proto);
         }
       });
@@ -68,4 +52,4 @@ class Grpc {
   }
 }
 
-export default Grpc;
+export default GrpcLoader;

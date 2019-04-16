@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@babel/polyfill": "^7.0.0",
-    "axios": "^0.18.0",
     "bcryptjs": "^2.4.3",
     "bluebird": "^3.4.7",
     "colors": "^1.1.2",
@@ -31,8 +30,10 @@
     "kubernetes-client": "^6.11.0",
     "lodash": "^4.17.11",
     "morgan": "^1.9.0",
+    "node-fetch": "^2.3.0",
     "promise": "^8.0.1",
     "protobufjs": "^6.8.8",
+    "redis": "^2.8.0",
     "swagger-fluent": "^3.1.2",
     "winston": "^3.1.0"
   },
@@ -42,6 +43,7 @@
     "@babel/node": "^7.2.0",
     "@babel/preset-env": "^7.2.0",
     "@babel/register": "^7.0.0",
+    "axios": "^0.18.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "chai-http": "^4.2.0",
