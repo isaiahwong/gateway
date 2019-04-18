@@ -39,17 +39,6 @@ class GrpcLoader {
       });
     return protos;
   }
-
-  loadAllServices() {
-    const authPackage = this.packages.authService.auth;
-
-    this.server.addService(
-      authPackage.AuthService.service,
-      {
-        charge: authPackage.handler.bind(this)
-      }
-    );
-  }
 }
 
 export default GrpcLoader;

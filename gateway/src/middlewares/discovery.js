@@ -1,4 +1,5 @@
 import express from 'express';
+import grpc from 'grpc';
 
 import k8sClient from '../libs/k8sClient';
 import Proxy from '../libs/proxy';
@@ -78,7 +79,7 @@ async function discoverRoutes() {
 export default async function proxy(app, protos) {
   // Set reference to router 
   app.use((req, res, next) => router(req, res, next));
-  discoverRoutes();
+  await discoverRoutes();
 
   // Discover routes at a 5 second interval
   setInterval(discoverRoutes, process.env.SVC_DISCOVERY_INTERVAL || 5000);

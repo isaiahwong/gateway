@@ -31,7 +31,7 @@ export default async function attachMiddleWares(app, server, args) {
   app.use(helmet.hidePoweredBy({ setTo: '' }));
 
   // proxy api routes
-  discovery(app, args.protos);
+  await discovery(app, args.protos);
 
   app.use('/', topLevelRoutes);
 
