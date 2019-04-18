@@ -72,7 +72,7 @@ function createMethodDefinition(method, serviceName, options) {
         responseDeserialize: createDeserializer(method.resolvedResponseType, options),
         // TODO(murgatroid99): Find a better way to handle this
         originalName: _.camelCase(method.name),
-        options: method.options
+        httpEndpoints: mapHttpEndpoints(method.options)
     };
 }
 function createServiceDefinition(service, name, options) {
@@ -106,6 +106,34 @@ function addIncludePathResolver(root, includePaths) {
         }
         return null;
     };
+}
+/**
+ * @author isaiahwong
+ * @param {*} filename 
+ * @param {*} options 
+ */
+function mapHttpEndpoints(options, name) {
+    if (!options) {
+        return;
+    }
+    const httpMethodsAndBody = {
+        get: 'get',
+        put: 'put',
+        post: 'post',
+        delete: 'delete',
+        patch: 'patch',
+        body: 'body'
+    }
+    const httpEndpoints = {};
+    for (let _i = 0, _keys = Object.keys(options); _i < _keys.length; _i++) {
+        const key = _keys[_i];
+        if (!key.match(/\(google.api.http\)./) ||
+            !httpMethodsAndBody[key.replace(/\(google.api.http\)./, '')]) {
+            break;
+        }
+        httpEndpoints[key.replace(/\(google.api.http\)./, '')] = options[key];
+    }
+    return _.isEmpty(httpEndpoints) ? null : httpEndpoints;
 }
 /**
  * Load a .proto file with the specified options.
