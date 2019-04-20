@@ -1,4 +1,6 @@
-FROM node:alpine as build
+FROM node:alpine as base
+
+FROM base as builder
 WORKDIR /app
 COPY ./package.json .
 RUN npm i
@@ -6,7 +8,7 @@ WORKDIR .
 COPY . .
 RUN npm run build
 
-FROM node:alpine
+FROM base
 WORKDIR /app
 COPY ./package.json ./
 RUN npm install --production
