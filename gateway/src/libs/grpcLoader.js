@@ -33,8 +33,8 @@ class GrpcLoader {
           this.loadProtos(`${filePath}${fileName}/`, include);
         }
         else if (fileName.match(/\.proto$/) && !filePath.match(/third_party/)) { // exclude third party
-          // const proto = this.loadProto(fileName, include);
-          // protos.push(proto);
+          const proto = this.loadProto(fileName, include);
+          protos.push(proto);
         }
       });
     return protos;
