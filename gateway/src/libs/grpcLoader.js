@@ -30,11 +30,11 @@ class GrpcLoader {
       .readdirSync(filePath)
       .forEach((fileName) => {
         if (!fs.statSync(filePath + fileName).isFile()) { // Folder
-          this.loadProtos(`${filePath}${fileName}/`);
+          this.loadProtos(`${filePath}${fileName}/`, include);
         }
         else if (fileName.match(/\.proto$/) && !filePath.match(/third_party/)) { // exclude third party
-          const proto = this.loadProto(fileName, include);
-          protos.push(proto);
+          // const proto = this.loadProto(fileName, include);
+          // protos.push(proto);
         }
       });
     return protos;

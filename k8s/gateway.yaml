@@ -46,7 +46,7 @@ spec:
     port: 5000
     targetPort: gateway-port
   selector: 
-    component: gateway
+    app: gateway
   type: ClusterIP
 
 ---
@@ -60,11 +60,11 @@ spec:
   replicas: 2
   selector: 
     matchLabels:
-      component: gateway
+      app: gateway
   template: 
     metadata: 
       labels: 
-        component: gateway
+        app: gateway
     spec:
       serviceAccountName: api-gateway
       containers:
