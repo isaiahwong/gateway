@@ -11,5 +11,5 @@ spec:
         paths:
           - path: /
             backend: 
-              serviceName: api-gateway-service
+              serviceName: gatewayservice
               servicePort: 5000

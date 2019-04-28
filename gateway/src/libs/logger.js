@@ -135,7 +135,6 @@ else if (!IS_TEST || IS_TEST && ENABLE_CONSOLE_LOGS_IN_TEST) {
     .add(consoleConfig);
 }
 
-
 // exports a public interface instead of accessing directly the logger module
 const loggerInterface = {
   info(...args) {
@@ -148,6 +147,10 @@ const loggerInterface = {
 
   route(msg, ...args) {
     logger.route(msg, ...args);
+  },
+
+  warn(msg, ...args) {
+    logger.warn(msg, ...args);
   },
 
   // Accepts two argument,

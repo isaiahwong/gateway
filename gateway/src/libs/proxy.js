@@ -5,7 +5,7 @@ import errorHandler from '../middlewares/errorHandler';
 
 class Proxy {
   constructor() {
-    this.serverInterface = HttpProxy.createProxyServer({
+    this.proxyInterface = HttpProxy.createProxyServer({
       preserveHeaderKeyCase: true,
       ws: true
     });
@@ -14,14 +14,14 @@ class Proxy {
   }
 
   _getEventNames() {
-    return this.serverInterface.eventNames();
+    return this.proxyInterface.eventNames();
   }
   
   /**
    * Handles Not found route with errorHandler middleware
    */
   _onError() {
-    this.serverInterface.on('error', (err, req, res, next) => {
+    this.proxyInterface.on('error', (err, req, res, next) => {
       if (err.code === 'ENOTFOUND') {
         err = new NotFound();
       }
@@ -30,7 +30,7 @@ class Proxy {
   }
 
   web(req, res, options) {
-    this.serverInterface.web(req, res, options);
+    this.proxyInterface.web(req, res, options);
   }
 }
 

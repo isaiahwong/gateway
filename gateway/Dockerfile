@@ -1,6 +1,10 @@
-FROM node:alpine as base
+FROM node:8-alpine as build
 
-FROM base as builder
+RUN apk add --update --no-cache \
+    python \
+    make \
+    g++ 
+
 WORKDIR /app
 COPY ./package.json .
 RUN npm i
@@ -8,7 +12,7 @@ WORKDIR .
 COPY . .
 RUN npm run build
 
-FROM base
+FROM node:8-alpine
 WORKDIR /app
 COPY ./package.json ./
 RUN npm install --production

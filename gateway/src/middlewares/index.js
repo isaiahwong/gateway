@@ -8,7 +8,7 @@ import notFound from './notFound';
 import language from './language';
 import responseHandler from './responseHandler';
 import errorHandler from './errorHandler';
-// import discovery from './discovery';
+import discovery from './discovery';
 import topLevelRoutes from './topLevelRoutes';
 
 export default async function attachMiddleWares(app, server, args) {
@@ -31,7 +31,7 @@ export default async function attachMiddleWares(app, server, args) {
   app.use(helmet.hidePoweredBy({ setTo: '' }));
 
   // proxy api routes
-  // await discovery(app, args.protos);
+  await discovery(app, args.protos);
 
   app.use('/', topLevelRoutes);
 

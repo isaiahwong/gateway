@@ -116,22 +116,24 @@ function mapHttpEndpoints(options, name) {
     if (!options) {
         return;
     }
-    const httpMethodsAndBody = {
+    const httpMethods = {
         get: 'get',
         put: 'put',
         post: 'post',
         delete: 'delete',
         patch: 'patch',
-        body: 'body'
     }
+
     const httpEndpoints = {};
     for (let _i = 0, _keys = Object.keys(options); _i < _keys.length; _i++) {
         const key = _keys[_i];
-        if (!key.match(/\(google.api.http\)./) ||
-            !httpMethodsAndBody[key.replace(/\(google.api.http\)./, '')]) {
-            break;
+
+        if (!key.match('http.') ||
+            !httpMethods[key.replace('http.', '')]) {
+            continue;
         }
-        httpEndpoints[key.replace(/\(google.api.http\)./, '')] = options[key];
+        httpEndpoints.path = options[key];
+        httpEndpoints.method = key.replace('http.', '');
     }
     return _.isEmpty(httpEndpoints) ? null : httpEndpoints;
 }
@@ -167,6 +169,7 @@ function load(filename, options) {
         }
         addIncludePathResolver(root, options.includeDirs);
     }
+
     return root.load(filename, options).then(function (loadedRoot) {
         loadedRoot.resolveAll();
         return createPackageDefinition(root, options);
