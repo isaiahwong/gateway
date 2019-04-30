@@ -1,5 +1,6 @@
 import express from 'express';
 
+import bodyParser from '../middlewares/bodyParser';
 import logger from '../libs/logger';
 import k8sClient from '../libs/k8sClient';
 import Proxy from '../libs/proxy';
@@ -58,7 +59,7 @@ async function discoverRoutes() {
       }
 
       const { path, version, secured } = labels;
-      
+
       if (!path) {
         throw new InternalServerError(`path not defined for ${namespace}:${name}.`);
       }
@@ -66,26 +67,40 @@ async function discoverRoutes() {
       /** v1 is automatically appended if version is not specified */
       const servicePath = `/api/${version || 'v1'}/${path}`;
 
-      if (portName === 'grpc') {
-        await grpcProxy.startService(name, port);
-      }
+      switch (portName) {
+        case 'grpc': {
+          const svc = await grpcProxy.startClient(name, port);
+          if (!svc) return;
+          const httpEndpoints = grpcProxy.getHttpEndpoints(name);
 
-      router.use(servicePath, async (req, res) => {
-        if (portName === 'grpc') {
-          try {
-            await grpcProxy.call(req, res, { name, port });
-            return;
-          }
-          catch (err) {
-            logger.error(err);
-            return;
-          }
+          // Create router mappings for GRPC methods with http endpoints
+          httpEndpoints.forEach(({ path: httpPath, method }) => {
+            if (!httpPath || !method) {
+              logger.warn(`${!httpPath && 'Http path and ' || ''} ${!method && 'method' || ''} is not defined.`);
+              return;
+            }
+
+            router[method](httpPath, bodyParser, async (req, res, next) => {
+              try {
+                await grpcProxy.call(req, res, { name, port, method });
+                return;
+              }
+              catch (err) {
+                logger.error(err);
+                next(err);
+              }
+            });
+          });
+          break;
         }
-        /** Proxies request to matched service */
-        Proxy.web(req, res, {
-          target: `http://${name}${port}${servicePath}`
-        });
-      });
+        default:
+          router.use(servicePath, async (req, res) => {
+            /** Proxies request to matched service */
+            Proxy.web(req, res, {
+              target: `http://${name}${port}${servicePath}`
+            });
+          });
+      }
     });
   }
 }
@@ -96,7 +111,7 @@ async function discoverRoutes() {
  * @param {*} protos proto definitions to be mapped with http methods
  */
 export default async function proxy(app, protos) {
-  grpcProxy.loadServices(protos);
+  grpcProxy.loadProtos(protos);
 
   // Set reference to router 
   app.use((req, res, next) => router(req, res, next));
