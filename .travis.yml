@@ -1,6 +1,6 @@
-lsudo: required
-services:
-  - docker
-env:
-  global:
-    - SHA=$(git rev-parse HEAD) # Gets commit unique ha
+# sudo: required
+# services:
+#   - docker
+# env:
+#   global:
+#     - SHA=$(git rev-parse HEAD) # Gets commit unique ha

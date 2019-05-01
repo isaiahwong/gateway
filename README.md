@@ -7,8 +7,10 @@ The Cluster is infrastructured with the microservices architecture. Each service
 * [Directory Layout](#Directory-Layout)
 * [Technology Stack](#technology-stack)
 
-# Getting Started
+# Installation
 Starting a local version of the cluster on your development machine. 
+Install [Docker][docker]
+
 
 See the detailed [Getting Started Guide](./docs/getting-started.md)
 
@@ -29,6 +31,8 @@ skaffold dev
 # Gateway
 The gateway is the entry point for api services. Gateway depends on Kubernetes's [Service Discovery][k8s-svc-discovery]. 
 
+1. Running locally with [Docker Desktop][docker]
+
 Read more on the Gateway [Documentation](./gateway/README.md)
 
 # Directory Layout
@@ -42,6 +46,7 @@ Read more on the Gateway [Documentation](./gateway/README.md)
 │   ├── /api/                   # Api Services k8s
 │   ├── /nginx-ingress/         # Kubernetes ingress config files
 │   ├── gateway.yaml            # Kubernetes gateway deployment | service config file
+│   ├── env.yaml                # Gateway env variables
 │   └── ...                     # Other config files 
 │ 
 ├── /scripts/                   # Kubernetes config files    
@@ -68,7 +73,7 @@ Read more on the Gateway [Documentation](./gateway/README.md)
 [brew]: https://brew.sh/
 [minikube]: https://github.com/kubernetes/minikube/releases/  
 [vbox]: https://www.virtualbox.org/wiki/Downloads
-[redux]: https://redux.js.org/introduction
+[docker]: https://www.docker.com/community-edition
 
 [node]: https://nodejs.org
 [express]: http://expressjs.com/

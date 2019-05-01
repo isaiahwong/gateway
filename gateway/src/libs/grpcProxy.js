@@ -21,8 +21,8 @@ class GrpcProxy {
   }
 
   /**
-   * Stores in memory
-   * @param {} protos 
+   * Stores protos in memory
+   * @param {Array} protos 
    */
   loadProtos(protos) {
     if (!protos || !protos.length) {
@@ -34,7 +34,7 @@ class GrpcProxy {
       protos.reduce((accumulator, proto) => {
         const _package = Object.keys(proto)[0];
         const services = proto[_package];
-        Object.keys(services).map((key) => {
+        Object.keys(services).forEach((key) => {
           services[key].originalName = key;
           accumulator[key.toLowerCase()] = services[key];
         });
@@ -61,6 +61,15 @@ class GrpcProxy {
     );
   }
 
+  /**
+ * Load a .proto file with the specified options.
+ * @param req express `req`
+ * @param res express `res`
+ * @param {Object} options 
+ * @param {String} options.name Service `name`
+ * @param {Number} options.port Service `port`
+ * @param {String} options.method http verbs `post`, `get`, etc
+ */
   async call(req, res, options) {
     const { 
       name, 
