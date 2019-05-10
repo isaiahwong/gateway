@@ -7,6 +7,8 @@ kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-ad
 ```
 
 ## Nginx
+https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#configuration-snippet
+
 ```
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml
 
@@ -14,6 +16,8 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/mast
 ```
 
 ## Cert manager
+https://docs.cert-manager.io/en/latest/getting-started/install.html
+
 ```
 kubectl create namespace cert-manager
 
