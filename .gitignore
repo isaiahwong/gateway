@@ -18,6 +18,9 @@ npm-debug*
 cert/
 /cert
 
+cert-manager/
+/cert
+
 #Environment variables
 .env
 

@@ -4,17 +4,28 @@ metadata:
   name: ingress-service
   annotations:
     kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    certmanager.k8s.io/cluster-issuer: 'letsencrypt-prod'
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+    nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
 spec:
+  tls:
+    - hosts:
+      - isaiahwong.dev
+      - www.isaiahwong.dev
+      - api.isaiahwong.dev
+      secretName: isaiahwong-dev
   rules:
-    - http:
+    - host: www.isaiahwong.dev
+      http:
         paths:
-
         - path: /
           backend: 
             serviceName: frontend
             servicePort: 3000
-
+    
+    - host: api.isaiahwong.dev
+      http:
+        paths:
         - path: /api/
           backend: 
             serviceName: gatewayservice

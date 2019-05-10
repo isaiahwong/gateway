@@ -39,7 +39,7 @@ subjects:
 apiVersion: v1
 kind: Service
 metadata:
-  name: gatewayservice
+  name: gateway-service
 spec:
   ports:
   - name: http
@@ -70,12 +70,12 @@ spec:
       containers:
         - name: gateway
           image: registry.gitlab.com/isaiahwong/cluster/api/gateway
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
           - name: gateway-port
             containerPort: 5000
           envFrom:
           - configMapRef:
               name: gateway-env-configmap
-      # imagePullSecrets:
-      # - name: gitlab-auth
+      imagePullSecrets:
+      - name: gitlab-auth
