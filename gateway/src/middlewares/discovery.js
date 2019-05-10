@@ -132,7 +132,7 @@ async function discoverRoutes() {
  */
 export default async function proxy(app, protos) {
   global.services = {};
-  grpcProxy.loadProtos(protos);
+  grpcProxy.loadServices(protos);
 
   // Set reference to router 
   app.use((req, res, next) => router(req, res, next));

@@ -7,22 +7,31 @@ import { setupLanguage } from './libs/i18n';
 import attachMiddlewares from './middlewares';
 
 class HttpServer {
-  constructor(protos) {
-    this.appEnv = __PROD__ ? 'production' : 'development';
-    this.protos = protos;
+
+  /**
+   * @param {Object} options 
+   * @param {String} options.port Http Port
+   * @param {Number} options.appEnv Sets server environment
+   */
+  constructor(options = {}) {
+    this.appEnv = options.appEnv || __PROD__ ? 'production' : 'development';
     this.server = http.createServer();
     this.app = express();
 
     // Setup locales
     setupLanguage();
-    this.app.set('port', process.env.PORT || 5000);
+    this.app.set('port', options.port || process.env.PORT || 5000);
 
     // secure app by setting various HTTP headers.
     this.app.use(helmet());
   }
 
+  set protos(protos) {
+    this._protos = protos;
+  }
+
   async listen() {
-    await attachMiddlewares(this.app, this.server, { protos: this.protos });
+    await attachMiddlewares(this.app, this.server, { protos: this._protos });
     
     this.server.on('request', this.app);
     this.server.listen(this.app.get('port'), () => {

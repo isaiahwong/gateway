@@ -1,6 +1,24 @@
-# sudo: required
-# services:
-#   - docker
-# env:
-#   global:
-#     - SHA=$(git rev-parse HEAD) # Gets commit unique ha
+sudo: required
+language: generic
+services:
+  - docker
+
+# Installs Docker Compose for test environment
+before_install:
+  - openssl aes-256-cbc -K $encrypted_0c35eebf403c_key -iv $encrypted_0c35eebf403c_iv -in isaiahwongdev-cluster.json.enc -out isaiahwongdev-cluster.json -d  - curl https://sdk.cloud.google.com | bash > /dev/null
+  - source $HOME/google-cloud-sdk/path.bash.inc
+  - gcloud components update kubectl
+  - gcloud auth activate-service-account --key-file isaiahwongdev-service.json
+  - gcloud config set project isaiahwongdev
+  - gcloud config set compute/zone asia-east1-a	
+  - gcloud container clusters get-credentials isaiahwongdev	  
+  - echo "$DOCKER_PASSWORD" | docker login registry.gitlab.com -u "$DOCKER_USERNAME" --password-stdin
+  - make -C ./gateway
+
+  - sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  - sudo chmod +x /usr/local/bin/docker-compose
+
+# script:
+#   - sudo chmod +x ./test.sh
+#   - ./test.sh
+#deploy:

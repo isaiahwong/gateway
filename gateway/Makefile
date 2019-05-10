@@ -11,7 +11,7 @@ help: ## List targets & descriptions
 	@cat Makefile* | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 build: ## Build docker image
-	docker build -t $(IMAGE_NAME) . --rm=true && docker system prune -f
+	docker build -t $(IMAGE_NAME) . --rm=true
 
 build-sha:
 	docker build -t $(IMAGE_NAME):$(BUILD_ID) .

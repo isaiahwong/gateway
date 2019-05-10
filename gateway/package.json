@@ -5,10 +5,11 @@
   "private": true,
   "bin": "index.js",
   "scripts": {
+    "precommit": "npm run test",
     "start": "node ./out/index.js",
     "dev": "babel-node ./src/index.js",
     "watch": "nodemon --watch src --exec babel-node ./src/index.js",
-    "test": "mocha --recursive test/api --require ./test/helpers/start-server",
+    "test": "NODE_ENV=test mocha --recursive test/unit --require ./test/helpers/start-server",
     "synk:test": "snyk test",
     "build": "babel src -d out"
   },
@@ -62,6 +63,7 @@
     "mocha": "^5.2.0",
     "nodemon": "^1.18.7",
     "pkg": "^4.3.7",
+    "sinon": "^7.3.2",
     "snyk": "^1.134.2"
   },
   "pkg": {

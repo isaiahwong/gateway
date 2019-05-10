@@ -24,7 +24,7 @@ class GrpcProxy {
    * Stores protos in memory
    * @param {Array} protos 
    */
-  loadProtos(protos) {
+  loadServices(protos) {
     if (!protos || !protos.length) {
       logger.warn('No protos supplied');
       return;
@@ -62,14 +62,14 @@ class GrpcProxy {
   }
 
   /**
- * Load a .proto file with the specified options.
- * @param req express `req`
- * @param res express `res`
- * @param {Object} options 
- * @param {String} options.name Service `name`
- * @param {Number} options.port Service `port`
- * @param {String} options.method http verbs `post`, `get`, etc
- */
+   * Proxy a grpc service 
+   * @param req express `req`
+   * @param res express `res`
+   * @param {Object} options 
+   * @param {String} options.name Service `name`
+   * @param {Number} options.port Service `port`
+   * @param {String} options.method http verbs `post`, `get`, etc
+   */
   async call(req, res, options) {
     const { 
       name, 

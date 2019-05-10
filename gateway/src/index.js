@@ -8,7 +8,7 @@ require('./libs/setupEnv').config();
 
 const path = require('path');
 const HttpServer = require('./server').default;
-const GrpcLoader = require('./libs/grpcLoader').default;
+const grpcLoader = require('./libs/grpcLoader').default;
 const logger = require('./libs/logger').default;
 
 process.on('unhandledRejection', (reason, p) => {
@@ -19,12 +19,11 @@ process.on('unhandledRejection', (reason, p) => {
 
 const PROTO_PATH = path.join(__dirname, '..', '/proto/');
 
-const grpcLoader = new GrpcLoader();
-
 // Load protos to be injected to HTTP server and Grpc Server
 const protos = [];
 grpcLoader.loadProtos(protos, PROTO_PATH);
 
-const server = new HttpServer(protos);
+const server = new HttpServer();
+server.protos = protos;
 
 server.listen();

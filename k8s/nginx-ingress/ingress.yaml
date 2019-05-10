@@ -9,7 +9,13 @@ spec:
   rules:
     - http:
         paths:
-          - path: /
-            backend: 
-              serviceName: gatewayservice
-              servicePort: 5000
+
+        - path: /
+          backend: 
+            serviceName: frontend
+            servicePort: 3000
+
+        - path: /api/
+          backend: 
+            serviceName: gatewayservice
+            servicePort: 5000
