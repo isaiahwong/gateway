@@ -26,7 +26,7 @@ spec:
     - host: api.isaiahwong.dev
       http:
         paths:
-        - path: /api/
+        - path: /
           backend: 
-            serviceName: gatewayservice
+            serviceName: gateway-service
             servicePort: 5000

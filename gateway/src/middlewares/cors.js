@@ -9,7 +9,8 @@ const whitelist = [
 
 const corsOptions = {
   origin: (origin, cb) => {
-    if (whitelist.indexOf(origin) !== -1 || (!origin && __DEV__)) {
+    console.log(origin)
+    if (whitelist.indexOf(origin) !== -1 || (!origin)) {
       cb(null, true);
     } 
     else {
