@@ -68,14 +68,31 @@ spec:
     spec:
       serviceAccountName: api-gateway
       containers:
-        - name: gateway
-          image: registry.gitlab.com/isaiahwong/cluster/api/gateway
-          imagePullPolicy: Always
-          ports:
-          - name: gateway-port
-            containerPort: 5000
-          envFrom:
-          - configMapRef:
-              name: gateway-env-configmap
+      - name: gateway
+        image: registry.gitlab.com/isaiahwong/cluster/api/gateway
+        imagePullPolicy: Always
+        ports:
+        - name: gateway-port
+          containerPort: 5000
+
+        envFrom:
+        - configMapRef:
+            name: gateway-env-configmap
+
+        resources:
+          requests:
+            cpu: 50m
+            memory: 50Mi
+          limits:
+            cpu: 80m
+            memory: 60Mi
+        
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 3
+          periodSeconds: 3
+
       imagePullSecrets:
       - name: gitlab-auth
