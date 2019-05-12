@@ -4,24 +4,17 @@ services:
   - docker
 env:
   global:
-    - SHA=$(git rev-parse HEAD | cut -c -7) # Gets commit unique hash to be set for image tagging
-    - CLOUDSDK_CORE_DISABLE_PROMPTS=1
+  - SHA=$(git rev-parse HEAD | cut -c -7) # Gets commit unique hash to be set for image tagging
+  - CLOUDSDK_CORE_DISABLE_PROMPTS=1
     
 # Installs Docker Compose for test environment
 before_install:
-  - echo "$DOCKER_PASSWORD" | docker login registry.gitlab.com -u "$DOCKER_USERNAME" --password-stdin
+- echo "$DOCKER_PASSWORD" | docker login registry.gitlab.com -u "$DOCKER_USERNAME" --password-stdin
 
-  - sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-  - sudo chmod +x /usr/local/bin/docker-compose
+- sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+- sudo chmod +x /usr/local/bin/docker-compose
 
-job:
-  include: 
-  # - stage: test
-  #   script:
-      # test
-      # - sudo chmod +x ./test.sh
-      #- ./test.sh
-  - stage: deploy
-    script:
-    - make -C ./gateway build-all
-    - make -C ./gateway push-all
+
+script:
+- sudo chmod+x ./deploy.sh
+- ./deploy.sh

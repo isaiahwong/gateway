@@ -19,7 +19,7 @@ RUN npm install --production
 
 # This field will be commented during production as env variables will be overrided
 # with k8s ConfigMap of env variables. Uncomment when using it solely with Docker
-
+# As .env are not copied to the repo, this will result in crashing the pipeline as .env does not exist 
 # COPY ./.env ./ 
 COPY ./locales ./locales
 COPY ./proto ./proto
