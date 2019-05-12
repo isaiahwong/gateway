@@ -2,24 +2,27 @@ sudo: required
 language: generic
 services:
   - docker
-
+env:
+  global:
+    - SHA=$(git rev-parse HEAD | cut -c -7) # Gets commit unique hash to be set for image tagging
+    - CLOUDSDK_CORE_DISABLE_PROMPTS=1
+    
 # Installs Docker Compose for test environment
 before_install:
-  - openssl aes-256-cbc -K $encrypted_0c35eebf403c_key -iv $encrypted_0c35eebf403c_iv -in isaiahwongdev-service.json.enc -out isaiahwongdev-service.json -d  
-  - curl https://sdk.cloud.google.com | bash > /dev/null
-  - source $HOME/google-cloud-sdk/path.bash.inc
-  - gcloud components update kubectl
-  - gcloud auth activate-service-account --key-file isaiahwongdev-service.json
-  - gcloud config set project isaiahwongdev
-  - gcloud config set compute/zone asia-east1-a	
-  - gcloud container clusters get-credentials isaiahwong	  
   - echo "$DOCKER_PASSWORD" | docker login registry.gitlab.com -u "$DOCKER_USERNAME" --password-stdin
   - make -C ./gateway
 
   - sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
   - sudo chmod +x /usr/local/bin/docker-compose
 
-# script:
-#   - sudo chmod +x ./test.sh
-#   - ./test.sh
-#deploy:
+job:
+  include: 
+  # - stage: test
+  #   script:
+      # test
+      # - sudo chmod +x ./test.sh
+      #- ./test.sh
+  - stage: deploy
+    script:
+    - sudo chmod+x ./deploy.sh
+    - ./deploy.sh
