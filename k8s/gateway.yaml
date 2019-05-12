@@ -81,17 +81,24 @@ spec:
 
         resources:
           requests:
-            cpu: 50m
-            memory: 50Mi
-          limits:
             cpu: 80m
             memory: 60Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 3
         
         livenessProbe:
           httpGet:
             path: /
             port: 5000
-          initialDelaySeconds: 3
+          initialDelaySeconds: 15
           periodSeconds: 3
 
       imagePullSecrets:
