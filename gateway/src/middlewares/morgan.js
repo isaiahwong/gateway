@@ -25,6 +25,11 @@ export default morgan((tokens, req, res) => {
     responseTime: `${tokens['response-time'](req, res)} ms`
   };
 
+  // Do not log liveniness probe
+  if (req.originalUrl === '/hz') {
+    return null;
+  }
+
   logger.route(message, toBeLogged);
 
   return null;

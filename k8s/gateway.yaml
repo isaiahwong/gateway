@@ -89,16 +89,16 @@ spec:
 
         readinessProbe:
           httpGet:
-            path: /
+            path: /hz
             port: 5000
-          initialDelaySeconds: 30
+          initialDelaySeconds: 15
           periodSeconds: 3
         
         livenessProbe:
           httpGet:
-            path: /
+            path: /hz
             port: 5000
-          initialDelaySeconds: 15
+          initialDelaySeconds: 3
           periodSeconds: 3
 
       imagePullSecrets:
