@@ -15,6 +15,12 @@ export default morgan((tokens, req, res) => {
 
   // logger format 
   const toBeLogged = {
+    httpRequest: {
+      status: res.statusCode,
+      requestUrl: req.url,
+      requestMethod: req.method,
+      remoteIp: req.connection.remoteAddress,
+    },
     method: req.method,
     originalUrl: req.originalUrl,
     referrer: tokens['referrer'](req, res),

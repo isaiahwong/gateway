@@ -4,11 +4,13 @@
  * Persist Logs into db or transmits to log service
  */
 import winston from 'winston';
+import { LoggingWinston } from '@google-cloud/logging-winston';
 import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 
 import { CustomError } from './errors';
+
 
 const IS_TEST = process.env.NODE_ENV === 'test';
 
@@ -29,7 +31,6 @@ const config = {
     route: 5,
     verbose: 6,
     silly: 7,
-    custom: 8
   },
   colors: {
     error: 'red',
@@ -40,9 +41,14 @@ const config = {
     route: 'green',
     verbose: 'cyan',
     silly: 'grey',
-    custom: 'yellow'
   }
 };
+
+const loggingWinston = new LoggingWinston({
+  level: 'verbose', // Log only if info.level less than or equal to this level
+  levels: config.levels
+});
+
 
 winston.addColors(config.colors);
 
@@ -119,7 +125,8 @@ const logger = winston.createLogger({
       filename: path.join(logDirectory, '/error.log'), 
       level: 'error',
       format: filterOnly('error')
-    })
+    }),
+    loggingWinston,
   ]
 });
 
@@ -137,8 +144,8 @@ else if (!IS_TEST || IS_TEST && ENABLE_CONSOLE_LOGS_IN_TEST) {
 
 // exports a public interface instead of accessing directly the logger module
 const loggerInterface = {
-  info(...args) {
-    logger.info(...args);
+  info(msg, ...args) {
+    logger.info(msg, ...args);
   },
 
   verbose(...args) {

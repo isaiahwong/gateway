@@ -23,9 +23,15 @@ push-sha:
 	docker push $(IMAGE_NAME):$(BUILD_ID)
 
 build-all:
-	make build-sha
-	make build
+	docker build -t $(IMAGE_NAME):latest -t $(IMAGE_NAME):$(BUILD_ID) . --rm=true
 
 push-all:
 	make push
 	make push-sha
+
+build-push:
+	make build-all
+	make push-all
+
+set-image:
+	kubectl set image deployments/api-gateway gateway=$(IMAGE_NAME):$(BUILD_ID)

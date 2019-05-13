@@ -70,7 +70,7 @@ spec:
       containers:
       - name: gateway
         image: registry.gitlab.com/isaiahwong/cluster/api/gateway
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
         - name: gateway-port
           containerPort: 5000
@@ -81,11 +81,11 @@ spec:
 
         resources:
           requests:
-            cpu: 55m
+            cpu: 60m
             memory: 60Mi
           limits:
-            cpu: 60m
-            memory: 88Mi
+            cpu: 100m
+            memory: 100Mi
 
         readinessProbe:
           httpGet:
