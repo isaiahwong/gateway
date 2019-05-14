@@ -20,15 +20,20 @@ export default morgan((tokens, req, res) => {
       requestUrl: req.url,
       requestMethod: req.method,
       remoteIp: req.connection.remoteAddress,
+      responseSize: tokens.res(req, res, 'content-length'),
+      userAgent: tokens['user-agent'](req, res)
     },
-    method: req.method,
     originalUrl: req.originalUrl,
     referrer: tokens['referrer'](req, res),
     remoteAddr: tokens['remote-addr'](req, res),
     // don't send sensitive information that only adds noise
     headers: omit(req.headers, ['x-api-key', 'cookie', 'password', 'confirmPassword']),
     body: omit(req.body, ['password', 'confirmPassword']),
-    responseTime: `${tokens['response-time'](req, res)} ms`
+    query: req.query,
+    params: req.params,
+    responseTime: {
+      ms: tokens['response-time'](req, res)
+    }
   };
 
   // Do not log liveniness probe

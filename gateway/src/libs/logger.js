@@ -1,21 +1,21 @@
+/* eslint-disable no-unused-expressions */
 /**
  * Logging for API
  * TODO:
  * Persist Logs into db or transmits to log service
  */
 import winston from 'winston';
-import { LoggingWinston } from '@google-cloud/logging-winston';
+import { LoggingWinston as Stackdriver } from '@google-cloud/logging-winston';
 import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 
 import { CustomError } from './errors';
 
-
 const IS_TEST = process.env.NODE_ENV === 'test';
 
 const ENABLE_CONSOLE_LOGS_IN_TEST = process.env.ENABLE_CONSOLE_LOGS_IN_TEST === 'true';
-const ENABLE_CONSOLE_LOGS_IN_PROD = process.env.ENABLE_CONSOLE_LOGS_IN_PROD === 'true';
+const SERVICE_NAME = 'gateway-service';
 
 const { format } = winston;
 const colorizer = winston.format.colorize();
@@ -44,17 +44,11 @@ const config = {
   }
 };
 
-const loggingWinston = new LoggingWinston({
-  level: 'verbose', // Log only if info.level less than or equal to this level
-  levels: config.levels
-});
-
-
 winston.addColors(config.colors);
 
 // Create the directory if it does not exist
 const logDirectory = path.join(__dirname, '..', '..', 'logs');
-if (!fs.existsSync(logDirectory)) {
+if (__DEV__ && !fs.existsSync(logDirectory)) {
   fs.mkdirSync(logDirectory);
 }
 
@@ -71,6 +65,19 @@ function filterOnly(level) {
   })();
 }
 
+const stackdriver = new Stackdriver({
+  level: 'verbose', // Log only if info.level less than or equal to this level
+  levels: config.levels,
+  serviceContext: {
+    service: SERVICE_NAME,
+    version: '1.0.0'
+  },
+  labels: {
+    name: SERVICE_NAME,
+    version: '1.0.0'
+  },
+  prefix: SERVICE_NAME
+});
 
 // Reusable console config 
 const consoleConfig = new winston.transports.Console({
@@ -95,52 +102,54 @@ const consoleConfig = new winston.transports.Console({
   )
 });
 
-const logger = winston.createLogger({
-  level: 'data', // Log only if info.level less than or equal to this level
+const fileTransports = [
+  {
+    file: '/info.log',
+    level: 'info'
+  },
+  {
+    file: '/route.log',
+    level: 'route'
+  },
+  {
+    file: '/warn.log',
+    level: 'warn'
+  },
+  {
+    file: '/error.log',
+    level: 'error'
+  },
+].map(({ file, level }) =>
+  new winston.transports.File({
+    filename: path.join(logDirectory, file),
+    level: level,
+    format: filterOnly(level)
+  })
+);
+
+const localLogger = winston.createLogger({
+  level: 'verbose', // Log only if info.level less than or equal to this level
   levels: config.levels,
-  format: format.combine(
-    format.timestamp({
-      format: 'YYYY-MM-DD HH:mm:ss'
-    }),
-    format.json()
-  ),
-  timestamp: winston.format.timestamp(),
   transports: [
-    new winston.transports.File({ 
-      filename: path.join(logDirectory, '/info.log'), 
-      level: 'info',
-      format: filterOnly('info')
-    }),
-    new winston.transports.File({ 
-      filename: path.join(logDirectory, '/route.log'), 
-      level: 'route',
-      format: filterOnly('route')
-    }),
-    new winston.transports.File({ 
-      filename: path.join(logDirectory, '/warn.log'), 
-      level: 'warn',
-      format: filterOnly('warn')
-    }),
-    new winston.transports.File({ 
-      filename: path.join(logDirectory, '/error.log'), 
-      level: 'error',
-      format: filterOnly('error')
-    }),
-    loggingWinston,
+    ...fileTransports
   ]
 });
 
-if (__PROD__) {
-  if (ENABLE_CONSOLE_LOGS_IN_PROD) {
-    logger
-      .add(consoleConfig);
-  }
-}
 // Do not log anything when testing unless specified
-else if (!IS_TEST || IS_TEST && ENABLE_CONSOLE_LOGS_IN_TEST) { 
-  logger
-    .add(consoleConfig);
+if (!IS_TEST || IS_TEST && ENABLE_CONSOLE_LOGS_IN_TEST) {
+  localLogger.add(consoleConfig);
 }
+
+const cloudLogger = winston.createLogger({
+  level: 'route',
+  levels: config.levels,
+  transports: [
+    new winston.transports.Console(),
+    stackdriver
+  ]
+});
+
+const logger = __PROD__ ? cloudLogger : localLogger;
 
 // exports a public interface instead of accessing directly the logger module
 const loggerInterface = {

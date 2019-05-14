@@ -46,7 +46,7 @@ spec:
     port: 5000
     targetPort: gateway-port
   selector: 
-    app: gateway
+    app: gateway-service
   type: ClusterIP
 
 ---
@@ -55,22 +55,22 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api-gateway
+  name: gateway-service
 spec:
   replicas: 1
   selector: 
     matchLabels:
-      app: gateway
+      app: gateway-service
   template: 
     metadata: 
       labels: 
-        app: gateway
+        app: gateway-service
     spec:
       serviceAccountName: api-gateway
       containers:
       - name: gateway
         image: registry.gitlab.com/isaiahwong/cluster/api/gateway
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - name: gateway-port
           containerPort: 5000
@@ -81,10 +81,10 @@ spec:
 
         resources:
           requests:
-            cpu: 60m
-            memory: 60Mi
-          limits:
             cpu: 100m
+            memory: 80Mi
+          limits:
+            cpu: 120m
             memory: 100Mi
 
         readinessProbe:
@@ -92,14 +92,14 @@ spec:
             path: /hz
             port: 5000
           initialDelaySeconds: 30
-          periodSeconds: 3
+          periodSeconds: 4
         
         livenessProbe:
           httpGet:
             path: /hz
             port: 5000
-          initialDelaySeconds: 30
-          periodSeconds: 3
+          initialDelaySeconds: 60
+          periodSeconds: 120
 
       imagePullSecrets:
       - name: gitlab-auth

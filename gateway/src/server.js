@@ -36,7 +36,7 @@ class HttpServer {
     this.server.on('request', this.app);
     this.server.listen(this.app.get('port'), () => {
       logger.info(`Node Server listening on port ${this.app.get('port')}`);
-      logger.verbose(`Running ${this.appEnv}`);
+      logger.info(`Running ${this.appEnv}`);
     });
   }
 }
