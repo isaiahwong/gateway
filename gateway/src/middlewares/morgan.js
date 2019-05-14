@@ -6,6 +6,7 @@ import logger from '../libs/logger';
 export default morgan((tokens, req, res) => {
   // retrieved from morgan lib
   const message = [
+    `[${tokens['remote-addr'](req, res)}]`,
     `[${tokens.method(req, res)}]`,
     tokens.url(req, res),
     tokens.status(req, res),

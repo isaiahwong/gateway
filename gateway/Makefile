@@ -34,7 +34,7 @@ build-push:
 	make push-all
 
 set-image:
-	kubectl set image deployments/api-gateway gateway=$(IMAGE_NAME):latest
+	kubectl set image deployments/gateway-service gateway=$(IMAGE_NAME):latest
 
 set-image-sha:
-	kubectl set image deployments/api-gateway gateway=$(IMAGE_NAME):$(BUILD_ID)
+	kubectl set image deployments/gateway-service gateway=$(IMAGE_NAME):$(BUILD_ID)

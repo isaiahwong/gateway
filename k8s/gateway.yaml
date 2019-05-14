@@ -81,18 +81,18 @@ spec:
 
         resources:
           requests:
-            cpu: 100m
+            cpu: 50m
             memory: 64Mi
           limits:
-            cpu: 200m
+            cpu: 80m
             memory: 128Mi
 
         readinessProbe:
           httpGet:
             path: /hz
             port: 5000
-          initialDelaySeconds: 10
-          periodSeconds: 4
+          initialDelaySeconds: 60
+          periodSeconds: 120
         
         livenessProbe:
           httpGet:
