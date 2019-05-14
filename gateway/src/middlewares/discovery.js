@@ -111,7 +111,7 @@ async function discoverRoutes() {
     }
 
     // v1 is automatically appended if version is not specified 
-    const servicePath = `/${version || 'v1'}/${path}`;
+    const servicePath = `/api/${version || 'v1'}/${path}`;
 
     // Make services known to entire application by assigning to `global`
     global.services[name] = { port, portName, secured };
