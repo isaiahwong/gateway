@@ -1,8 +1,6 @@
 /* eslint-disable no-unused-expressions */
 /**
- * Logging for API
- * TODO:
- * Persist Logs into db or transmits to log service
+ * Logging 
  */
 import winston from 'winston';
 import { LoggingWinston as Stackdriver } from '@google-cloud/logging-winston';
