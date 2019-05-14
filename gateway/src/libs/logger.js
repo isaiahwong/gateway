@@ -200,7 +200,7 @@ const loggerInterface = {
         logger.error(...loggerArgs);
       }
       else {
-        logger.warn(...loggerArgs);
+        logger.verbose(...loggerArgs); // Ignore 4xx
       }
     }
     else {

@@ -7,7 +7,7 @@ import { InternalServerError, NotAuthorized } from '../libs/errors';
 fetch.Promise = Bluebird;
 
 const AUTH_SERVICE = process.env.AUTH_SERVICE || 'authservice';
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || '/api/v1/auth/';
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || '/v1/auth/';
 
 /**
  * Authentication Middleware
