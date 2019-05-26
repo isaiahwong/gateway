@@ -7,9 +7,8 @@ import { setupLanguage } from './libs/i18n';
 import attachMiddlewares from './middlewares';
 
 class HttpServer {
-
   /**
-   * @param {Object} options 
+   * @param {Object} options
    * @param {String} options.port Http Port
    * @param {Number} options.appEnv Sets server environment
    */
@@ -32,7 +31,7 @@ class HttpServer {
 
   async listen() {
     await attachMiddlewares(this.app, this.server, { protos: this._protos });
-    
+
     this.server.on('request', this.app);
     this.server.listen(this.app.get('port'), () => {
       logger.info(`Node Server listening on port ${this.app.get('port')}`);

@@ -9,7 +9,7 @@ function loadProto(fileName, include) {
     longs: String,
     enums: String,
     defaults: true,
-    oneofs: true
+    oneofs: true,
   };
 
   if (Array.isArray(include) && include.length) {
@@ -18,7 +18,7 @@ function loadProto(fileName, include) {
 
   const packageDefinition = protoLoader.loadSync(
     fileName,
-    options
+    options,
   );
   return grpc.loadPackageDefinition(packageDefinition);
 }
@@ -40,9 +40,8 @@ function loadProtos(protos = [], filePath, relativeInclude) {
       else if (fileName.match(/\.proto$/) && !filePath.match(/third_party/)) { // exclude third party
         const proto = (!relativeInclude || !relativeInclude.length)
           ?
-          loadProto(filePath + fileName) 
-          :
-          loadProto(fileName, relativeInclude);
+          loadProto(filePath + fileName)
+          : loadProto(fileName, relativeInclude);
         protos.push(proto);
       }
     });
@@ -50,7 +49,7 @@ function loadProtos(protos = [], filePath, relativeInclude) {
 
 const grpcInterface = {
   loadProtos,
-  loadProto
+  loadProto,
 };
 
 export default grpcInterface;

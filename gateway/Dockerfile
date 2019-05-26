@@ -21,7 +21,5 @@ RUN npm install --production
 # with k8s ConfigMap of env variables. Uncomment when using it solely with Docker
 # As .env are not copied to the repo, this will result in crashing the pipeline as .env does not exist 
 # COPY ./.env ./ 
-COPY ./locales ./locales
-COPY ./proto ./proto
-COPY --from=build /app/out ./out
+COPY --from=build /app/dist ./dist
 CMD ["npm", "start"]

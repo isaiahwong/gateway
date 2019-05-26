@@ -1,5 +1,3 @@
-require('@babel/polyfill');
-
 // Setup Bluebird as the global promise library
 global.Promise = require('bluebird');
 
@@ -17,7 +15,7 @@ process.on('unhandledRejection', (reason, p) => {
   process.exit(1);
 });
 
-const PROTO_PATH = path.join(__dirname, '..', '/proto/');
+const PROTO_PATH = __PROD__ ? path.join(__dirname, 'proto/') : path.join(__dirname, '..', '/proto/');
 
 // Load protos to be injected to HTTP server and Grpc Server
 const protos = [];

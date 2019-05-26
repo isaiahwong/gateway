@@ -39,7 +39,6 @@ export default function errorHandler(err, req, res, next) { // eslint-disable-li
   });
 
   const jsonRes = {
-    success: false,
     error: responseErr.name,
     message: responseErr.message,
   };

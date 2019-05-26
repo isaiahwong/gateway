@@ -6,15 +6,33 @@
   "bin": "index.js",
   "scripts": {
     "precommit": "npm run test",
-    "start": "node ./out/index.js",
+    "start": "node ./dist/index.js",
     "dev": "babel-node ./src/index.js",
     "watch": "nodemon --watch src --exec babel-node ./src/index.js",
     "test": "NODE_ENV=test mocha --recursive test/unit --require ./test/helpers/start-server",
     "synk:test": "snyk test",
-    "build": "babel src -d out"
+    "build": "webpack --env=production",
+    "lint": "lint-staged",
+    "lint-js": "eslint ./src"
+  },
+  
+  "lint-staged": {
+    "ignore": [
+      "package.json",
+      "**/dist/*.min.js"
+    ],
+    "linters": {
+      "*.{js}": [
+        "eslint --no-ignore --fix",
+        "git add --force"
+      ],
+      "*.{json}": [
+        "prettier --write",
+        "git add --force"
+      ]
+    }
   },
   "dependencies": {
-    "@babel/polyfill": "^7.0.0",
     "@google-cloud/logging-winston": "^0.11.1",
     "bcryptjs": "^2.4.3",
     "bluebird": "^3.4.7",
@@ -44,28 +62,38 @@
     "@babel/cli": "^7.2.0",
     "@babel/core": "^7.3.3",
     "@babel/node": "^7.2.0",
+    "@babel/polyfill": "^7.0.0",
     "@babel/preset-env": "^7.2.0",
     "@babel/register": "^7.0.0",
     "axios": "^0.18.0",
+    "babel-eslint": "^10.0.1",
+    "babel-loader": "^8.0.6",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "chai-http": "^4.2.0",
+    "clean-webpack-plugin": "^2.0.2",
+    "copy-webpack-plugin": "^5.0.3",
     "dockerode": "^2.5.8",
     "eslint": "^4.18.2",
     "eslint-config-airbnb": "^16.1.0",
     "eslint-config-google": "^0.9.1",
     "eslint-config-standard": "^11.0.0",
+    "eslint-plugin-flowtype": "^3.9.1",
     "eslint-plugin-import": "^2.9.0",
     "eslint-plugin-jsx-a11y": "^6.0.3",
     "eslint-plugin-node": "^6.0.1",
     "eslint-plugin-promise": "^3.7.0",
     "eslint-plugin-react": "^7.7.0",
     "eslint-plugin-standard": "^3.0.1",
+    "lint-staged": "^8.1.7",
     "mocha": "^5.2.0",
     "nodemon": "^1.18.7",
     "pkg": "^4.3.7",
     "sinon": "^7.3.2",
-    "snyk": "^1.134.2"
+    "snyk": "^1.134.2",
+    "webpack": "^4.32.2",
+    "webpack-cli": "^3.3.2",
+    "webpack-node-externals": "^1.7.2"
   },
   "pkg": {
     "scripts": "src/controllers/**/*.js",

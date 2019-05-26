@@ -16,13 +16,14 @@ class Proxy {
   _getEventNames() {
     return this.proxyInterface.eventNames();
   }
-  
+
   /**
    * Handles Not found route with errorHandler middleware
    */
   _onError() {
     this.proxyInterface.on('error', (err, req, res, next) => {
       if (err.code === 'ENOTFOUND') {
+        // eslint-disable-next-line no-param-reassign
         err = new NotFound();
       }
       errorHandler(err, req, res, next);

@@ -14,7 +14,7 @@ export default morgan((tokens, req, res) => {
     tokens['response-time'](req, res), 'ms'
   ].join(' ');
 
-  // logger format 
+  // logger format
   const toBeLogged = {
     httpRequest: {
       status: res.statusCode,
@@ -25,6 +25,7 @@ export default morgan((tokens, req, res) => {
       userAgent: tokens['user-agent'](req, res)
     },
     originalUrl: req.originalUrl,
+    // eslint-disable-next-line dot-notation
     referrer: tokens['referrer'](req, res),
     remoteAddr: tokens['remote-addr'](req, res),
     // don't send sensitive information that only adds noise

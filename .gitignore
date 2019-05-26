@@ -39,6 +39,7 @@ cert-manager/
 /build
 build/
 out
+dist
 
 # misc
 .DS_Store

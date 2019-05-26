@@ -5,7 +5,6 @@ import logger from './logger';
 import { NotFound } from '../libs/errors';
 
 class GrpcProxy {
-
   constructor(protos) {
     this.services = {};
     this.clients = {};
@@ -22,7 +21,7 @@ class GrpcProxy {
 
   /**
    * Stores protos in memory
-   * @param {Array} protos 
+   * @param {Array} protos
    */
   loadServices(protos) {
     if (!protos || !protos.length) {
@@ -30,16 +29,18 @@ class GrpcProxy {
       return;
     }
 
-    Object.assign(this.services,
+    Object.assign(
+      this.services,
       protos.reduce((accumulator, proto) => {
         const _package = Object.keys(proto)[0];
         const services = proto[_package];
         Object.keys(services).forEach((key) => {
           services[key].originalName = key;
+          // eslint-disable-next-line no-param-reassign
           accumulator[key.toLowerCase()] = services[key];
         });
         return accumulator;
-      }, this.services)
+      }, this.services),
     );
   }
 
@@ -56,24 +57,27 @@ class GrpcProxy {
     );
 
     return new Promise((resolve, reject) =>
-      this.clients[name].waitForReady(Date.now() + 1000,
-        err => err && reject(err) || resolve(this.clients[name]))
+      this.clients[name].waitForReady(
+        Date.now() + 1000,
+        // eslint-disable-next-line no-mixed-operators
+        err => err && reject(err) || resolve(this.clients[name])
+      )
     );
   }
 
   /**
-   * Proxy a grpc service 
+   * Proxy a grpc service
    * @param req express `req`
    * @param res express `res`
-   * @param {Object} options 
+   * @param {Object} options
    * @param {String} options.name Service `name`
    * @param {Number} options.port Service `port`
    * @param {String} options.method http verbs `post`, `get`, etc
    */
   async call(req, res, options) {
-    const { 
-      name, 
-      port, 
+    const {
+      name,
+      port,
       method
     } = options;
 
@@ -98,7 +102,7 @@ class GrpcProxy {
 
       const {
         path,
-        //  method 
+        // method
       } = service[_key].httpEndpoints;
 
       const regexp = pathToRegexp(path);
@@ -109,17 +113,17 @@ class GrpcProxy {
 
     if (!client[key]) {
       throw new NotFound(`${originalUrl} not found`);
-    } 
+    }
 
     Object.keys(req.headers).forEach(h => metadata.set(h, req.headers[h]));
 
     let payload = !method && {};
 
     switch (method.toLowerCase()) {
-      case 'post': 
+      case 'post':
         payload = req.body; break;
       case 'get':
-        payload = { ...req.params, ...req.query }; 
+        payload = { ...req.params, ...req.query };
         break;
       case 'put': case 'patch': case 'delete':
         // TODO

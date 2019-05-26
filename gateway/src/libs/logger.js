@@ -1,6 +1,7 @@
+/* eslint-disable no-mixed-operators */
 /* eslint-disable no-unused-expressions */
 /**
- * Logging 
+ * Logging
  */
 import winston from 'winston';
 import { LoggingWinston as Stackdriver } from '@google-cloud/logging-winston';
@@ -77,7 +78,7 @@ const stackdriver = new Stackdriver({
   prefix: SERVICE_NAME
 });
 
-// Reusable console config 
+// Reusable console config
 const consoleConfig = new winston.transports.Console({
   level: 'verbose', // Log only if info.level less than or equal to this level
   format: format.combine(
@@ -120,7 +121,7 @@ const fileTransports = [
 ].map(({ file, level }) =>
   new winston.transports.File({
     filename: path.join(logDirectory, file),
-    level: level,
+    level,
     format: filterOnly(level)
   })
 );
@@ -179,7 +180,8 @@ const loggerInterface = {
       const stack = err.stack || err.message || err;
 
       if (_.isPlainObject(errorData) && !errorData.fullError) {
-        // If the error object has interesting data (not only httpCode, message and name from the CustomError class)
+        // If the error object has interesting data (not only httpCode,
+        // message and name from the CustomError class)
         // add it to the logs
         if (err instanceof CustomError) {
           const errWithoutCommonProps = _.omit(err, ['name', 'httpCode', 'message']);

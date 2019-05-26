@@ -1,3 +1,4 @@
+/* eslint-disable no-mixed-operators */
 import express from 'express';
 
 import logger from '../libs/logger';
@@ -100,8 +101,8 @@ async function discoverRoutes() {
 
     // eslint-disable-next-line object-curly-newline
     const { path, version, secured, expose } = labels;
-    
-    // Do not expose service 
+
+    // Do not expose service
     if (expose === 'false') {
       return;
     }
@@ -110,14 +111,14 @@ async function discoverRoutes() {
       throw new InternalServerError(`path not defined for ${namespace}:${name}.`);
     }
 
-    // v1 is automatically appended if version is not specified 
+    // v1 is automatically appended if version is not specified
     const servicePath = `/api/${version || 'v1'}/${path}`;
 
     // Make services known to entire application by assigning to `global`
     global.services[name] = { port, portName, secured };
 
     switch (portName) {
-      case 'grpc': 
+      case 'grpc':
         _proxyGrpc(name, port); break;
       default:
         _proxyHttp(name, port, servicePath);
@@ -126,15 +127,14 @@ async function discoverRoutes() {
 }
 
 /**
- * 
- * @param {Object} app 
+ * @param {Object} app
  * @param {Array} protos proto definitions to be mapped with http methods
  */
 export default async function proxy(app, protos) {
   global.services = {};
   grpcProxy.loadServices(protos);
 
-  // Set reference to router 
+  // Set reference to router
   app.use((req, res, next) => router(req, res, next));
   await discoverRoutes();
 
