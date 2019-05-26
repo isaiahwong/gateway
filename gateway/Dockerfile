@@ -22,4 +22,4 @@ RUN npm install --production
 # As .env are not copied to the repo, this will result in crashing the pipeline as .env does not exist 
 # COPY ./.env ./ 
 COPY --from=build /app/dist ./dist
-CMD ["npm", "start"]
+CMD ["npm", "run", "prod"]

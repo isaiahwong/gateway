@@ -4,33 +4,25 @@
   "main": "./server/index.js",
   "private": true,
   "bin": "index.js",
+
   "scripts": {
     "precommit": "lint-staged",
-    "start": "node ./dist/index.js",
-    "dev": "babel-node ./src/index.js",
+    "prod": "node ./dist/index.js",
+    "start": "babel-node ./src/index.js",
     "watch": "nodemon --watch src --exec babel-node ./src/index.js",
     "test": "NODE_ENV=test mocha --recursive test/unit --require ./test/helpers/start-server",
-    "synk:test": "snyk test",
+    "synk": "snyk test",
     "build": "webpack --env=production",
-    "lint": "lint-staged",
-    "lint-js": "eslint ./src"
+    "lint": "eslint ./src"
   },
-  "lint-staged": {
-    "ignore": [
-      "package.json",
-      "**/dist/*.min.js"
-    ],
-    "linters": {
-      "*.{js}": [
-        "eslint --no-ignore --fix",
-        "git add --force"
-      ],
-      "*.{json}": [
-        "prettier --write",
-        "git add --force"
-      ]
+  
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint && npm run test",
+      "pre-push": "npm run lint && npm run test"
     }
   },
+
   "dependencies": {
     "@google-cloud/logging-winston": "^0.11.1",
     "bcryptjs": "^2.4.3",
@@ -84,7 +76,7 @@
     "eslint-plugin-promise": "^3.7.0",
     "eslint-plugin-react": "^7.7.0",
     "eslint-plugin-standard": "^3.0.1",
-    "lint-staged": "^8.1.7",
+    "husky": "^2.3.0",
     "mocha": "^5.2.0",
     "nodemon": "^1.18.7",
     "pkg": "^4.3.7",

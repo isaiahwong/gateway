@@ -64,20 +64,6 @@ function filterOnly(level) {
   })();
 }
 
-const stackdriver = new Stackdriver({
-  level: 'verbose', // Log only if info.level less than or equal to this level
-  levels: config.levels,
-  serviceContext: {
-    service: SERVICE_NAME,
-    version: '1.0.0'
-  },
-  labels: {
-    name: SERVICE_NAME,
-    version: '1.0.0'
-  },
-  prefix: SERVICE_NAME
-});
-
 // Reusable console config
 const consoleConfig = new winston.transports.Console({
   level: 'verbose', // Log only if info.level less than or equal to this level
@@ -137,6 +123,26 @@ const localLogger = winston.createLogger({
 // Do not log anything when testing unless specified
 if (!IS_TEST || IS_TEST && ENABLE_CONSOLE_LOGS_IN_TEST) {
   localLogger.add(consoleConfig);
+}
+
+let stackdriver;
+try {
+  stackdriver = new Stackdriver({
+    level: 'verbose', // Log only if info.level less than or equal to this level
+    levels: config.levels,
+    serviceContext: {
+      service: SERVICE_NAME,
+      version: '1.0.0'
+    },
+    labels: {
+      name: SERVICE_NAME,
+      version: '1.0.0'
+    },
+    prefix: SERVICE_NAME
+  });
+}
+catch (err) {
+  localLogger.info('Stack Driver, Could not load the default credentials.');
 }
 
 const cloudLogger = winston.createLogger({
