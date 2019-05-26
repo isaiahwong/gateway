@@ -6,7 +6,7 @@ global.sinon = require('sinon');
 global.chai = require('chai');
 chai.use(require('chai-as-promised'));
 
-global.sandbox = sinon.sandbox.create();
+global.sandbox = sinon.createSandbox();
 global.expect = chai.expect;
   
 require('../../src/libs/setupEnv').config();
