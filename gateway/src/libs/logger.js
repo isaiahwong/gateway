@@ -104,8 +104,8 @@ const fileTransports = [
     file: '/error.log',
     level: 'error'
   },
-].map(({ file, level }) =>
-  new winston.transports.File({
+].map(({ file, level }) => new winston.transports.File(
+  {
     filename: path.join(logDirectory, file),
     level,
     format: filterOnly(level)

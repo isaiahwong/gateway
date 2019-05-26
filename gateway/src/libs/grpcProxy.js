@@ -2,7 +2,7 @@ import grpc from 'grpc';
 import pathToRegexp from 'path-to-regexp';
 import logger from './logger';
 
-import { NotFound } from '../libs/errors';
+import { NotFound } from './errors';
 
 class GrpcProxy {
   constructor(protos) {
@@ -56,8 +56,8 @@ class GrpcProxy {
       grpc.credentials.createInsecure()
     );
 
-    return new Promise((resolve, reject) =>
-      this.clients[name].waitForReady(
+    return new Promise((resolve, reject) => this.clients[name]
+      .waitForReady(
         Date.now() + 1000,
         // eslint-disable-next-line no-mixed-operators
         err => err && reject(err) || resolve(this.clients[name])

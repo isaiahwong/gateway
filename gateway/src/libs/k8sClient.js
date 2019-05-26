@@ -7,11 +7,9 @@ class K8sClient {
   constructor() {
     // Allows running app without loading app in k8s cluster
     this.disableClient = process.env.DISABLE_K8S_CLIENT;
-    this.client = (this.disableClient !== 'true') ?
-      new Client1_10({ config: config.getInCluster() })
-      :
-      null;
-
+    this.client = (this.disableClient !== 'true')
+      ? new Client1_10({ config: config.getInCluster() })
+      : null;
     this.isActive = !!this.client;
   }
 
@@ -31,8 +29,7 @@ class K8sClient {
     }
 
     /** Filters response based on labels of service type resource */
-    return response.body.items.filter(({ metadata }) =>
-      metadata
+    return response.body.items.filter(({ metadata }) => metadata
       && metadata.labels
       && metadata.labels.serviceType
       && metadata.labels.serviceType === serviceType

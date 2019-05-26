@@ -7,8 +7,8 @@ import Proxy from '../libs/proxy';
 import GrpcProxy from '../libs/grpcProxy';
 import { InternalServerError } from '../libs/errors';
 
-import bodyParser from '../middlewares/bodyParser';
-import auth from '../middlewares/auth';
+import bodyParser from './bodyParser';
+import auth from './auth';
 
 const grpcProxy = new GrpcProxy();
 let router = new express.Router();

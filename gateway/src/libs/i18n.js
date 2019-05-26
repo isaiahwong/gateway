@@ -5,10 +5,9 @@ import fs from 'fs';
 import path from 'path';
 
 // Port to retrieving from database
-export const localePath =
-  __PROD__
-    ? path.join(__dirname, 'locales/')
-    : path.join(__dirname, '../../locales/');
+export const localePath = __PROD__
+  ? path.join(__dirname, 'locales/')
+  : path.join(__dirname, '../../locales/');
 
 const i18n = {
   strings: null,

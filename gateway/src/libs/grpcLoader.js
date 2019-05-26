@@ -39,8 +39,7 @@ function loadProtos(protos = [], filePath, relativeInclude) {
       }
       else if (fileName.match(/\.proto$/) && !filePath.match(/third_party/)) { // exclude third party
         const proto = (!relativeInclude || !relativeInclude.length)
-          ?
-          loadProto(filePath + fileName)
+          ? loadProto(filePath + fileName)
           : loadProto(fileName, relativeInclude);
         protos.push(proto);
       }
