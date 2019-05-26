@@ -5,7 +5,7 @@
   "private": true,
   "bin": "index.js",
   "scripts": {
-    "precommit": "npm run test",
+    "precommit": "lint-staged",
     "start": "node ./dist/index.js",
     "dev": "babel-node ./src/index.js",
     "watch": "nodemon --watch src --exec babel-node ./src/index.js",
@@ -15,7 +15,6 @@
     "lint": "lint-staged",
     "lint-js": "eslint ./src"
   },
-  
   "lint-staged": {
     "ignore": [
       "package.json",
