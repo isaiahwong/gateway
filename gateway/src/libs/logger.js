@@ -125,6 +125,7 @@ if (!IS_TEST || IS_TEST && ENABLE_CONSOLE_LOGS_IN_TEST) {
   localLogger.add(consoleConfig);
 }
 
+let cloudLogger;
 let stackdriver;
 try {
   stackdriver = new Stackdriver({
@@ -140,21 +141,22 @@ try {
     },
     prefix: SERVICE_NAME
   });
+
+  cloudLogger = winston.createLogger({
+    level: 'route',
+    levels: config.levels,
+    transports: [
+      new winston.transports.Console(),
+      stackdriver
+    ]
+  });
 }
 catch (err) {
   localLogger.info('Stack Driver, Could not load the default credentials.');
 }
 
-const cloudLogger = winston.createLogger({
-  level: 'route',
-  levels: config.levels,
-  transports: [
-    new winston.transports.Console(),
-    stackdriver
-  ]
-});
-
-const logger = __PROD__ ? cloudLogger : localLogger;
+// Ensure that cloudLogger is instantiated
+const logger = __PROD__ && cloudLogger ? cloudLogger : localLogger;
 
 // exports a public interface instead of accessing directly the logger module
 const loggerInterface = {

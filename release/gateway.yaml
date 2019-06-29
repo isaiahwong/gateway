@@ -79,20 +79,20 @@ spec:
         - configMapRef:
             name: gateway-env-configmap
 
-        # resources:
-        #   requests:
-        #     cpu: 50m
-        #     memory: 64Mi
-        #   limits:
-        #     cpu: 80m
-        #     memory: 128Mi
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 80m
+            memory: 128Mi
 
-        # readinessProbe:
-        #   httpGet:
-        #     path: /hz
-        #     port: 5000
-        #   initialDelaySeconds: 60
-        #   periodSeconds: 120
+        readinessProbe:
+          httpGet:
+            path: /hz
+            port: 5000
+          initialDelaySeconds: 60
+          periodSeconds: 120
         
         livenessProbe:
           httpGet:
