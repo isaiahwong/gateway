@@ -23,9 +23,9 @@
     }
   },
   "dependencies": {
+    "@babel/polyfill": "^7.4.4",
     "@google-cloud/logging-winston": "^0.11.1",
     "bcryptjs": "^2.4.3",
-    "@babel/polyfill": "^7.4.4",
     "bluebird": "^3.4.7",
     "body-parser": "^1.19.0",
     "colors": "^1.1.2",
@@ -39,7 +39,7 @@
     "helmet": "^3.9.0",
     "http-proxy": "^1.17.0",
     "kubernetes-client": "^6.11.0",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.14",
     "morgan": "^1.9.0",
     "node-fetch": "^2.3.0",
     "path-to-regexp": "^3.0.0",
