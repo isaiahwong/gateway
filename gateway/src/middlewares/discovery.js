@@ -43,7 +43,7 @@ async function _proxyGrpc(serviceName, port) {
 
     router[method](httpPath, [auth], async (req, res, next) => {
       try {
-        await grpcProxy.call(req, res,
+        await grpcProxy.call(req, res, next,
           {
             serviceName,
             port,

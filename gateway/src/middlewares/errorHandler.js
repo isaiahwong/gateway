@@ -1,6 +1,11 @@
-import { omit } from 'lodash';
+import { omit, map } from 'lodash';
 import logger from 'esther';
-import { CustomError, InternalServerError } from 'horeb';
+
+import {
+  CustomError,
+  BadRequest,
+  InternalServerError,
+} from 'horeb';
 
 export default function errorHandler(err, req, res, next) { // eslint-disable-line no-unused-vars
   // In case of a CustomError class, use it's data
@@ -16,6 +21,33 @@ export default function errorHandler(err, req, res, next) { // eslint-disable-li
     responseErr.message = err.message;
   }
 
+  // Handle errors by express-validator
+  if (Array.isArray(err) && err[0].param && (err[0].msg || err[0].message)) {
+    responseErr = new BadRequest(res.t('invalidReqParams'));
+    responseErr.errors = err.map(paramErr => ({
+      message: paramErr.msg,
+      param: paramErr.param,
+      value: paramErr.value,
+    }));
+  }
+
+  // Handle mongoose validation errors
+  if (err.name === 'ValidationError') {
+    const model = err.message.split(' ')[0];
+    responseErr = new BadRequest(`${model} validation failed`);
+    responseErr.errors = map(err.errors, mongooseErr => ({
+      message: mongooseErr.message,
+      path: mongooseErr.path,
+      value: mongooseErr.value,
+    }));
+  }
+
+  // Handle Stripe Card errors errors (can be safely shown to the users)
+  // https://stripe.com/docs/api/node#errors
+  if (err.type === 'StripeCardError') {
+    responseErr = new BadRequest(err.message);
+  }
+
   if (!responseErr || responseErr.httpCode >= 500) {
     // Try to identify the error...
     // ...
@@ -25,8 +57,7 @@ export default function errorHandler(err, req, res, next) { // eslint-disable-li
     responseErr = new InternalServerError();
   }
 
-  // log the error
-  logger.error(err, {
+  const args = {
     method: req.method,
     originalUrl: req.originalUrl,
 
@@ -36,9 +67,17 @@ export default function errorHandler(err, req, res, next) { // eslint-disable-li
 
     httpCode: responseErr.httpCode,
     isHandledError: responseErr.httpCode < 500,
-  });
+  };
+
+  if (err.code && err.errors) {
+    args.errors = err.errors;
+  }
+
+  // log the error
+  logger.error(err, args);
 
   const jsonRes = {
+    success: false,
     error: responseErr.name,
     message: responseErr.message,
   };

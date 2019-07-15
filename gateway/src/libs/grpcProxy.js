@@ -88,7 +88,7 @@ class GrpcProxy {
    * @param {String} options.method i.e http verbs such as `post`, `get`, etc
    * @param {String} options.body body mapping field. `*` will be encapsulated with a `body` key
    */
-  async call(req, res, options) {
+  async call(req, res, next, options) {
     const {
       serviceName,
       port,
@@ -137,7 +137,13 @@ class GrpcProxy {
 
     switch (method.toLowerCase()) {
       case 'post':
-        payload = req.body; break;
+        if (req.buf) { // use raw request body
+          payload = req.buf;
+        }
+        else {
+          payload = req.body;
+        }
+        break;
       case 'get':
         payload = { ...req.params, ...req.query };
         break;
@@ -148,6 +154,7 @@ class GrpcProxy {
         break;
     }
 
+    // if asterisk selector is being used, encode it with a body field
     if (body === '*') {
       payload = { body: payload };
     }
@@ -161,7 +168,10 @@ class GrpcProxy {
     });
 
     client[rpcCall](payload, metadata, (err, response) => {
-      res.json(response);
+      if (err) {
+        return next(err);
+      }
+      return res.json(response);
     });
   }
 }
