@@ -27,7 +27,6 @@ async function _proxyHttp(name, port, servicePath) {
 
 async function _proxyGrpc(serviceName, port) {
   try {
-    console.log(serviceName)
     const svc = await grpcProxy.startClient(serviceName, port);
     if (!svc) return;
   }
