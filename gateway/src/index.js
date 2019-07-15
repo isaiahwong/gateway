@@ -5,12 +5,24 @@ global.Promise = require('bluebird');
 require('./libs/setupEnv').config();
 
 const path = require('path');
-const HttpServer = require('./server').default;
-const grpcLoader = require('./libs/grpcLoader').default;
-const logger = require('./libs/logger').default;
+const logger = require('esther');
+const pkg = require('../package.json');
+const HttpServer = require('./server');
+const grpcLoader = require('./libs/grpcLoader');
+
+// initialise logger
+logger.init({
+  useFileTransport: true,
+  logDirectory: path.join(__dirname, '..', 'logs'),
+  useStackDriver: process.env.ENABLE_STACKDRIVER === 'true',
+  stackDriverOpt: {
+    serviceName: 'gateway-service',
+    ver: pkg.version
+  }
+});
 
 process.on('unhandledRejection', (reason, p) => {
-  logger.error(`Unhandled Rejection at: ${p} \nreason: ${reason}`);
+  logger.error(`Unhandled Rejection at: ${p} \nreason: ${reason.stack || reason}`);
   // send entire app down. k8s will restart it
   process.exit(1);
 });

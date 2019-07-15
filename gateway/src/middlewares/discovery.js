@@ -1,7 +1,7 @@
 /* eslint-disable no-mixed-operators */
 import express from 'express';
 
-import logger from '../libs/logger';
+import logger from 'esther';
 import k8sClient from '../libs/k8sClient';
 import Proxy from '../libs/proxy';
 import GrpcProxy from '../libs/grpcProxy';
@@ -16,6 +16,7 @@ let router = new express.Router();
 let servicesCount = 0;
 
 async function _proxyHttp(name, port, servicePath) {
+  logger.info(`Proxying http to ${name}`);
   router.use(servicePath, [auth], async (req, res) => {
     /** Proxies request to matched service */
     Proxy.web(req, res, {
@@ -24,10 +25,16 @@ async function _proxyHttp(name, port, servicePath) {
   });
 }
 
-async function _proxyGrpc(name, port) {
-  const svc = await grpcProxy.startClient(name, port);
-  if (!svc) return;
-  const httpEndpoints = grpcProxy.getHttpEndpoints(name);
+async function _proxyGrpc(serviceName, port) {
+  try {
+    console.log(serviceName)
+    const svc = await grpcProxy.startClient(serviceName, port);
+    if (!svc) return;
+  }
+  catch (err) {
+    logger.error(err);
+  }
+  const httpEndpoints = grpcProxy.getHttpEndpoints(serviceName);
 
   // Create router mappings for GRPC methods with http endpoints
   httpEndpoints.forEach(({ path: httpPath, method }) => {
@@ -38,7 +45,7 @@ async function _proxyGrpc(name, port) {
 
     router[method](httpPath, [bodyParser, auth], async (req, res, next) => {
       try {
-        await grpcProxy.call(req, res, { name, port, method });
+        await grpcProxy.call(req, res, { serviceName, port, method });
         return;
       }
       catch (err) {
@@ -93,10 +100,10 @@ async function discoverRoutes() {
       throw new InternalServerError('spec not defined for service.');
     }
 
-    const { labels, namespace, name } = metadata;
+    const { labels, namespace, name: serviceName } = metadata;
 
     if (!labels) {
-      throw new InternalServerError(`labels not defined for ${namespace}:${name}.`);
+      throw new InternalServerError(`labels not defined for ${namespace}:${serviceName}.`);
     }
 
     // eslint-disable-next-line object-curly-newline
@@ -108,20 +115,20 @@ async function discoverRoutes() {
     }
 
     if (!path) {
-      throw new InternalServerError(`path not defined for ${namespace}:${name}.`);
+      throw new InternalServerError(`path not defined for ${namespace}:${serviceName}.`);
     }
 
     // v1 is automatically appended if version is not specified
     const servicePath = `/api/${version || 'v1'}/${path}`;
 
     // Make services known to entire application by assigning to `global`
-    global.services[name] = { port, portName, secured };
+    global.services[serviceName] = { port, portName, secured };
 
     switch (portName) {
       case 'grpc':
-        _proxyGrpc(name, port); break;
+        _proxyGrpc(serviceName, port); break;
       default:
-        _proxyHttp(name, port, servicePath);
+        _proxyHttp(serviceName, port, servicePath);
     }
   });
 }

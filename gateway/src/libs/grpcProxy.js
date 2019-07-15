@@ -1,6 +1,6 @@
 import grpc from 'grpc';
 import pathToRegexp from 'path-to-regexp';
-import logger from './logger';
+import logger from 'esther';
 
 import { NotFound } from './errors';
 
@@ -12,8 +12,20 @@ class GrpcProxy {
     protos && this.loadProtos(protos);
   }
 
-  getHttpEndpoints(name) {
-    const { service } = this.services[name]; // gets service definition
+  getService(serviceName) {
+    // removes special characters such as hypens. i.e payment-service -> paymentservice
+    const svc = this.services[serviceName] || this.services[serviceName.replace(/[^\w\s]/gi, '')];
+    return svc;
+  }
+
+  getClient(serviceName) {
+    // removes special characters such as hypens. i.e payment-service -> paymentservice
+    const svc = this.clients[serviceName] || this.clients[serviceName.replace(/[^\w\s]/gi, '')];
+    return svc;
+  }
+
+  getHttpEndpoints(serviceName) {
+    const { service } = this.getService(serviceName); // gets service definition
     return Object.keys(service)
       .filter(_k => service[_k].httpEndpoints)
       .map(_k => service[_k].httpEndpoints);
@@ -44,25 +56,26 @@ class GrpcProxy {
     );
   }
 
-  startClient(name, port) {
-    const Client = this.services[name];
-    if (!Client) {
-      logger.warn(`${name} is not found in protos`);
-      return null;
-    }
+  startClient(serviceName, port) {
+    return new Promise((resolve, reject) => {
+      const Client = this.getService(serviceName);
+      if (!Client) {
+        logger.warn(`${serviceName} is not found in services`);
+        return resolve(null);
+      }
 
-    this.clients[name] = new Client(
-      `${name}:${port}`,
-      grpc.credentials.createInsecure()
-    );
+      this.clients[serviceName] = new Client(
+        `${serviceName}:${port}`,
+        grpc.credentials.createInsecure()
+      );
 
-    return new Promise((resolve, reject) => this.clients[name]
-      .waitForReady(
-        Date.now() + 1000,
-        // eslint-disable-next-line no-mixed-operators
-        err => err && reject(err) || resolve(this.clients[name])
-      )
-    );
+      return this.clients[serviceName]
+        .waitForReady(
+          Date.now() + 5000,
+          // eslint-disable-next-line no-mixed-operators
+          err => err && reject(err) || resolve(this.clients[serviceName])
+        );
+    });
   }
 
   /**
@@ -70,29 +83,35 @@ class GrpcProxy {
    * @param req express `req`
    * @param res express `res`
    * @param {Object} options
-   * @param {String} options.name Service `name`
+   * @param {String} options.serviceName Service `serviceName`
    * @param {Number} options.port Service `port`
    * @param {String} options.method http verbs `post`, `get`, etc
    */
   async call(req, res, options) {
     const {
-      name,
+      serviceName,
       port,
       method
     } = options;
 
-    if (!this.clients[name]) {
-      logger.warn(`${name} has not started, will attempt to start it.`);
+    if (!this.clients[serviceName]) {
+      logger.warn(`${serviceName} has not started, will attempt to start it.`);
       // Ends function call if service is not found
-      const svc = await this.startClient(name, port);
-      if (!svc) {
-        return;
+
+      try {
+        const svc = await this.startClient(serviceName, port);
+        if (!svc) {
+          return;
+        }
+      }
+      catch (err) {
+        logger.error(err);
       }
     }
 
     const metadata = new grpc.Metadata();
-    const client = this.clients[name];
-    const { service } = this.services[name]; // gets service definition
+    const client = this.getClient(serviceName);
+    const { service } = this.getService(serviceName); // gets service definition
     const { originalUrl } = req;
 
     const key = Object.keys(service).find((_key) => {
@@ -112,7 +131,7 @@ class GrpcProxy {
     });
 
     if (!client[key]) {
-      throw new NotFound(`${originalUrl} not found`);
+      throw new NotFound(`${originalUrl} not found or mapped`);
     }
 
     Object.keys(req.headers).forEach(h => metadata.set(h, req.headers[h]));
