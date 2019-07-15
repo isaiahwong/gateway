@@ -24,7 +24,7 @@ class GrpcProxy {
     return svc;
   }
 
-  getHttpEndpoints(serviceName) {
+  getHttpOptions(serviceName) {
     const { service } = this.getService(serviceName); // gets service definition
     return Object.keys(service)
       .filter(_k => service[_k].httpEndpoints)
@@ -85,27 +85,24 @@ class GrpcProxy {
    * @param {Object} options
    * @param {String} options.serviceName Service `serviceName`
    * @param {Number} options.port Service `port`
-   * @param {String} options.method http verbs `post`, `get`, etc
+   * @param {String} options.method i.e http verbs such as `post`, `get`, etc
+   * @param {String} options.body body mapping field. `*` will be encapsulated with a `body` key
    */
   async call(req, res, options) {
     const {
       serviceName,
       port,
-      method
+      method,
+      body
     } = options;
 
     if (!this.clients[serviceName]) {
       logger.warn(`${serviceName} has not started, will attempt to start it.`);
       // Ends function call if service is not found
 
-      try {
-        const svc = await this.startClient(serviceName, port);
-        if (!svc) {
-          return;
-        }
-      }
-      catch (err) {
-        logger.error(err);
+      const svc = await this.startClient(serviceName, port);
+      if (!svc) {
+        return;
       }
     }
 
@@ -114,7 +111,7 @@ class GrpcProxy {
     const { service } = this.getService(serviceName); // gets service definition
     const { originalUrl } = req;
 
-    const key = Object.keys(service).find((_key) => {
+    const rpcCall = Object.keys(service).find((_key) => {
       if (!service[_key].httpEndpoints) {
         return false;
       }
@@ -130,8 +127,8 @@ class GrpcProxy {
       return regexp.exec(originalUrl.split(/[?#]/)[0]);
     });
 
-    if (!client[key]) {
-      throw new NotFound(`${originalUrl} not found or mapped`);
+    if (!client[rpcCall]) {
+      throw new NotFound(`${originalUrl} not found or mapped to rpc method`);
     }
 
     Object.keys(req.headers).forEach(h => metadata.set(h, req.headers[h]));
@@ -151,7 +148,19 @@ class GrpcProxy {
         break;
     }
 
-    client[key](payload, (err, response) => {
+    if (body === '*') {
+      payload = { body: payload };
+    }
+
+    // encode bytes message field
+    Object.keys(payload).forEach((key) => {
+      const field = client[rpcCall].resolvedRequestType.fields[key];
+      if (field && field.type === 'bytes' && !Buffer.isBuffer(payload[key])) {
+        payload[key] = Buffer.from(JSON.stringify(payload[key]));
+      }
+    });
+
+    client[rpcCall](payload, metadata, (err, response) => {
       res.json(response);
     });
   }
