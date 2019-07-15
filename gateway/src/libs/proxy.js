@@ -1,6 +1,6 @@
 import HttpProxy from 'http-proxy';
+import { NotFound } from 'horeb';
 
-import { NotFound } from './errors';
 import errorHandler from '../middlewares/errorHandler';
 
 class Proxy {

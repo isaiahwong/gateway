@@ -38,6 +38,7 @@
     "express": "^4.16.0",
     "grpc": "^1.20.0",
     "helmet": "^3.9.0",
+    "horeb": "^1.0.0",
     "http-proxy": "^1.17.0",
     "kubernetes-client": "^6.11.0",
     "lodash": "^4.17.14",

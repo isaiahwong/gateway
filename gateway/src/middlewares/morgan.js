@@ -1,7 +1,7 @@
 // Logs request to console as well as log files
 import morgan from 'morgan';
 import { omit } from 'lodash';
-import logger from '../libs/logger';
+import logger from 'esther';
 
 export default morgan((tokens, req, res) => {
   // retrieved from morgan lib

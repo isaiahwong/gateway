@@ -2,7 +2,7 @@ import grpc from 'grpc';
 import pathToRegexp from 'path-to-regexp';
 import logger from 'esther';
 
-import { NotFound } from './errors';
+import { NotFound } from 'horeb';
 
 class GrpcProxy {
   constructor(protos) {

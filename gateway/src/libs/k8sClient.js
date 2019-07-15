@@ -1,7 +1,6 @@
 /* eslint camelcase: 0 */
 import { config, Client1_10 } from 'kubernetes-client';
-
-import logger from './logger';
+import logger from 'esther';
 
 class K8sClient {
   constructor() {

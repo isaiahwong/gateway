@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
 import fetch from 'node-fetch';
 import Bluebird from 'bluebird';
+import logger from 'esther';
 
-import logger from '../libs/logger';
-import { InternalServerError, NotAuthorized } from '../libs/errors';
+import { InternalServerError, NotAuthorized } from 'horeb';
 
 fetch.Promise = Bluebird;
 

@@ -1,5 +1,5 @@
 import cors from 'cors';
-import { NotAuthorized } from '../libs/errors';
+import { NotAuthorized } from 'horeb';
 
 const whitelist = [
   process.env.DOMAIN,

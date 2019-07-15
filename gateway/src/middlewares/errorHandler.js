@@ -1,6 +1,6 @@
 import { omit } from 'lodash';
-import logger from '../libs/logger';
-import { CustomError, InternalServerError } from '../libs/errors';
+import logger from 'esther';
+import { CustomError, InternalServerError } from 'horeb';
 
 export default function errorHandler(err, req, res, next) { // eslint-disable-line no-unused-vars
   // In case of a CustomError class, use it's data

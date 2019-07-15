@@ -1,7 +1,7 @@
 import express from 'express';
 import http from 'http';
 import helmet from 'helmet';
-import logger from './libs/logger';
+import logger from 'esther';
 import { setupLanguage } from './libs/i18n';
 
 import attachMiddlewares from './middlewares';

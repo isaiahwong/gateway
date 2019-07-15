@@ -2,10 +2,11 @@
 import express from 'express';
 
 import logger from 'esther';
+import { InternalServerError } from 'horeb';
+
 import k8sClient from '../libs/k8sClient';
 import Proxy from '../libs/proxy';
 import GrpcProxy from '../libs/grpcProxy';
-import { InternalServerError } from '../libs/errors';
 
 import bodyParser from './bodyParser';
 import auth from './auth';
