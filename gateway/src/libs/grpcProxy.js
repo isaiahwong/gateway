@@ -1,8 +1,8 @@
 import grpc from 'grpc';
 import pathToRegexp from 'path-to-regexp';
 import logger from 'esther';
-
 import { NotFound } from 'horeb';
+import { decodeArrayMetadata } from 'grpc-utils';
 
 class GrpcProxy {
   constructor(protos) {
@@ -45,7 +45,13 @@ class GrpcProxy {
       this.services,
       protos.reduce((accumulator, proto) => {
         const _package = Object.keys(proto)[0];
+        if (!_package) {
+          return accumulator;
+        }
         const services = proto[_package];
+        if (!services) {
+          return accumulator;
+        }
         Object.keys(services).forEach((key) => {
           services[key].originalName = key;
           // eslint-disable-next-line no-param-reassign
@@ -154,22 +160,30 @@ class GrpcProxy {
         break;
     }
 
-    // if asterisk selector is being used, encode it with a body field
+    // if asterisk selector is being used, encapsulate it with a body field
+    // as grpc proto requires a defined key
     if (body === '*') {
       payload = { body: payload };
     }
 
-    // encode bytes message field
-    Object.keys(payload).forEach((key) => {
-      const field = client[rpcCall].resolvedRequestType.fields[key];
-      if (field && field.type === 'bytes' && !Buffer.isBuffer(payload[key])) {
-        payload[key] = Buffer.from(JSON.stringify(payload[key]));
-      }
-    });
+    if (!Buffer.isBuffer(payload) || !Buffer.isBuffer(payload.body)) {
+      // encode bytes message field
+      Object.keys(payload).forEach((key) => {
+        const field = client[rpcCall].resolvedRequestType.fields[key];
+        if (field && field.type === 'bytes') {
+          payload[key] = Buffer.from(JSON.stringify(payload[key]));
+        }
+      });
+    }
 
     client[rpcCall](payload, metadata, (err, response) => {
       if (err) {
-        return next(err);
+        if (err.metadata) {
+          const errors = decodeArrayMetadata('errors', err.metadata);
+          // eslint-disable-next-line no-param-reassign
+          err.errors = errors;
+        }
+        next(err);
       }
       return res.json(response);
     });

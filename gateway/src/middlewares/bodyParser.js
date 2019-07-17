@@ -7,7 +7,9 @@ export default function (app) {
   app.use(
     bodyParser.json({
       verify(req, res, buf) {
-        req.buf = buf;
+        if (req.originalUrl && req.originalUrl.includes('/webhook')) {
+          req.buf = buf;
+        }
       },
     })
   );

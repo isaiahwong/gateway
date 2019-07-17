@@ -4,7 +4,10 @@ import logger from 'esther';
 import {
   CustomError,
   BadRequest,
+  NotAuthorized,
+  NotFound,
   InternalServerError,
+  ServiceUnavailable
 } from 'horeb';
 
 export default function errorHandler(err, req, res, next) { // eslint-disable-line no-unused-vars
@@ -12,6 +15,30 @@ export default function errorHandler(err, req, res, next) { // eslint-disable-li
   // Otherwise try to identify the type of error (mongoose validation, mongodb unique, ...)
   // If we can't identify it, respond with a generic 500 error
   let responseErr = err instanceof CustomError ? err : null;
+
+  // Grpc Code Errors
+  if (!responseErr && err.code) {
+    switch (err.code) {
+      case BadRequest.code:
+        responseErr = new BadRequest(err.details);
+        break;
+      case NotAuthorized.code:
+        responseErr = new NotAuthorized(err.details);
+        break;
+      case InternalServerError.code:
+        responseErr = new InternalServerError(err.details);
+        break;
+      case ServiceUnavailable.code:
+        responseErr = new ServiceUnavailable(err.details);
+        break;
+      case NotFound.code:
+        responseErr = new NotFound(err.details);
+        break;
+      default:
+        break;
+    }
+    if (responseErr) responseErr.errors = err.errors;
+  }
 
   // Handle errors created with 'http-errors' or similar that have a status/statusCode property
   if (err.statusCode && typeof err.statusCode === 'number') {

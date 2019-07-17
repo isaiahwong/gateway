@@ -12,6 +12,8 @@ function loadProto(fileName, include) {
     oneofs: true,
   };
 
+  // console.log(fileName)
+
   if (Array.isArray(include) && include.length) {
     options.includeDirs = [...include];
   }
