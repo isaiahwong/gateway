@@ -2,7 +2,7 @@ import grpc from 'grpc';
 import pathToRegexp from 'path-to-regexp';
 import logger from 'esther';
 import { NotFound } from 'horeb';
-import { decodeArrayMetadata } from 'grpc-utils';
+import { decodeMetadata } from 'grpc-utils';
 
 class GrpcProxy {
   constructor(protos) {
@@ -128,7 +128,6 @@ class GrpcProxy {
       } = service[_key].httpEndpoints;
 
       const regexp = pathToRegexp(path);
-
       // Find grpc with the mapped path
       return regexp.exec(originalUrl.split(/[?#]/)[0]);
     });
@@ -136,19 +135,14 @@ class GrpcProxy {
     if (!client[rpcCall]) {
       throw new NotFound(`${originalUrl} not found or mapped to rpc method`);
     }
-
-    Object.keys(req.headers).forEach(h => metadata.set(h, req.headers[h]));
+    const headers = { ...req.headers, method: req.method };
+    metadata.set('headers-bin', Buffer.from(JSON.stringify(headers)));
 
     let payload = !method && {};
 
     switch (method.toLowerCase()) {
       case 'post':
-        if (req.buf) { // use raw request body
-          payload = req.buf;
-        }
-        else {
-          payload = req.body;
-        }
+        payload = req.buf || req.body;
         break;
       case 'get':
         payload = { ...req.params, ...req.query };
@@ -166,7 +160,7 @@ class GrpcProxy {
       payload = { body: payload };
     }
 
-    if (!Buffer.isBuffer(payload) || !Buffer.isBuffer(payload.body)) {
+    if (!Buffer.isBuffer(payload) && !Buffer.isBuffer(payload.body)) {
       // encode bytes message field
       Object.keys(payload).forEach((key) => {
         const field = client[rpcCall].resolvedRequestType.fields[key];
@@ -179,11 +173,11 @@ class GrpcProxy {
     client[rpcCall](payload, metadata, (err, response) => {
       if (err) {
         if (err.metadata) {
-          const errors = decodeArrayMetadata('errors', err.metadata);
+          const errors = decodeMetadata('errors', err.metadata);
           // eslint-disable-next-line no-param-reassign
           err.errors = errors;
         }
-        next(err);
+        return next(err);
       }
       return res.json(response);
     });

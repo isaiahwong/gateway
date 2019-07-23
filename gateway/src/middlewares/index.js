@@ -3,7 +3,6 @@ import helmet from 'helmet';
 
 // Middlewares
 import morgan from './morgan';
-import bodyParser from './bodyParser';
 import cors from './cors';
 import notFound from './notFound';
 import language from './language';
@@ -21,8 +20,6 @@ export default async function attachMiddleWares(app, server, args) {
   app.use(language);
 
   app.use(compression());
-
-  bodyParser(app);
 
   // logs every request
   app.use(morgan);

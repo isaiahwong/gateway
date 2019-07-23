@@ -1,7 +1,7 @@
 /* eslint-disable no-mixed-operators */
 import express from 'express';
 import logger from 'esther';
-
+import bodyParser from 'body-parser';
 import k8sClient from '../libs/k8sClient';
 import Proxy from '../libs/proxy';
 import GrpcProxy from '../libs/grpcProxy';
@@ -15,7 +15,7 @@ let servicesCount = 0;
 
 async function _proxyHttp(serviceName, port, servicePath) {
   logger.info(`[HTTP] Proxying to ${serviceName}`);
-  router.use(servicePath, [auth], async (req, res) => {
+  router.use(servicePath, [auth], (req, res) => {
     /** Proxies request to matched service */
     Proxy.web(req, res, {
       target: `http://${serviceName}:${port}${servicePath}`
@@ -40,22 +40,108 @@ async function _proxyGrpc(serviceName, port) {
       logger.warn(`${!httpPath && 'Http path and ' || ''} ${!method && 'method' || ''} is not defined.`);
       return;
     }
+    router[method](
+      httpPath,
+      [
+        bodyParser.json({
+          verify(req, res, buf) {
+            if (req.originalUrl && req.originalUrl.includes('/webhook')) {
+              req.buf = buf;
+            }
+          },
+        }),
+        auth
+      ],
+      async (req, res, next) => {
+        try {
+          await grpcProxy.call(req, res, next,
+            {
+              serviceName,
+              port,
+              method,
+              body
+            }
+          );
+          return;
+        }
+        catch (err) {
+          logger.error(err);
+          next(err);
+        }
+      });
+  });
+}
 
-    router[method](httpPath, [auth], async (req, res, next) => {
-      try {
-        await grpcProxy.call(req, res, next,
-          {
-            serviceName,
-            port,
-            method,
-            body
-          }
-        );
-        return;
-      }
-      catch (err) {
-        logger.error(err);
-        next(err);
+async function applyRoutes(services = []) {
+  router = new express.Router();
+  services.forEach(async (service) => {
+    const {
+      metadata,
+      spec
+    } = service;
+
+    if (!metadata) {
+      logger.warn('metadata not defined for service.');
+      return;
+    }
+    if (!spec) {
+      logger.warn('spec not defined for service.');
+      return;
+    }
+
+    const { annotations, namespace, name: serviceName } = metadata;
+    if (!annotations || !annotations.config) {
+      logger.warn(`annotations.config not defined for ${namespace}:${serviceName}.`);
+      return;
+    }
+
+    let config = null;
+
+    try {
+      config = JSON.parse(annotations.config);
+    }
+    catch (err) {
+      const msg = `${namespace}:${serviceName} `;
+      logger.error(msg, err);
+      return;
+    }
+
+    // eslint-disable-next-line object-curly-newline
+    const { path, version, authentication, expose } = config;
+    // Do not expose service
+    if (expose === 'false') {
+      return;
+    }
+    if (!path) {
+      logger.warn(`path not defined for ${namespace}:${serviceName}.`);
+      return;
+    }
+    if (!spec.ports) {
+      logger.warn(`ports not defined for ${namespace}:${serviceName}`);
+      return;
+    }
+
+    // v1 is automatically appended if version is not specified
+    const servicePath = `/api/${version || 'v1'}/${path}`;
+    spec.ports.forEach((_port) => {
+      const {
+        port,
+        name: portName
+      } = _port;
+
+      // Make services known to entire application by assigning to `global`
+      global.services[serviceName] = {
+        port,
+        portName,
+        authentication,
+        serviceName,
+        servicePath
+      };
+      switch (portName) {
+        case 'grpc':
+          _proxyGrpc(serviceName, port); break;
+        default:
+          _proxyHttp(serviceName, port, servicePath);
       }
     });
   });
@@ -79,74 +165,8 @@ async function discoverRoutes() {
   if (!services || !services.length || servicesCount === services.length) {
     return;
   }
-
   servicesCount = services.length;
-  router = new express.Router();
-
-  services.forEach(async (service) => {
-    const {
-      metadata,
-      spec
-    } = service;
-
-    /**
-     * Checks ensure that `metadata` and `spec` are in response's body
-     */
-    if (!metadata) {
-      logger.warn('metadata not defined for service.');
-      return;
-    }
-
-    if (!spec) {
-      logger.warn('spec not defined for service.');
-      return;
-    }
-
-    const { labels, namespace, name: serviceName } = metadata;
-
-    if (!labels) {
-      logger.warn(`labels not defined for ${namespace}:${serviceName}.`);
-      return;
-    }
-
-    // eslint-disable-next-line object-curly-newline
-    const { path, version, secured, expose } = labels;
-
-    // Do not expose service
-    if (expose === 'false') {
-      return;
-    }
-
-    if (!path) {
-      logger.warn(`path not defined for ${namespace}:${serviceName}.`);
-      return;
-    }
-
-    if (!spec.ports) {
-      logger.warn(`ports not defined for ${namespace}:${serviceName}`);
-      return;
-    }
-
-    // v1 is automatically appended if version is not specified
-    const servicePath = `/api/${version || 'v1'}/${path}`;
-
-    spec.ports.forEach((_port) => {
-      const {
-        port,
-        name: portName
-      } = _port;
-
-      // Make services known to entire application by assigning to `global`
-      global.services[serviceName] = { port, portName, secured };
-
-      switch (portName) {
-        case 'grpc':
-          _proxyGrpc(serviceName, port); break;
-        default:
-          _proxyHttp(serviceName, port, servicePath);
-      }
-    });
-  });
+  applyRoutes(services);
 }
 
 /**

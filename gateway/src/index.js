@@ -14,6 +14,7 @@ const grpcLoader = require('./libs/grpcLoader');
 logger.init({
   useFileTransport: true,
   logDirectory: path.join(__dirname, '..', 'logs'),
+  disableStackTrace: true,
   useStackDriver: process.env.ENABLE_STACKDRIVER === 'true',
   stackDriverOpt: {
     serviceName: 'gateway-service',
