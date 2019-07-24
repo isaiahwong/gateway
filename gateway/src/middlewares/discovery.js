@@ -153,17 +153,7 @@ async function applyRoutes(services = []) {
  * @spec `ports`
  */
 async function discoverRoutes() {
-  const namespaces = await k8sClient.getNamespaces({ resourceType: 'api-namespace' });
-  const promises = await namespaces.map(async ({ metadata }) => {
-    const { name } = metadata;
-    return k8sClient.getServices(name, { resourceType: 'api-service' });
-  });
-
-  if (!promises || !promises.length) {
-    return;
-  }
-
-  const [services] = await Promise.all(promises);
+  const services = await k8sClient.getServices('default', { resourceType: 'api-service' });
 
   // Reinstantiates and resets the routing paths when there's new services
   if (servicesCount === 1 && services && services.length === 0) {
