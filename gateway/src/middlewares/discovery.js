@@ -153,7 +153,17 @@ async function applyRoutes(services = []) {
  * @spec `ports`
  */
 async function discoverRoutes() {
-  const services = await k8sClient.getServices('default');
+  const namespaces = await k8sClient.getNamespaces({ resourceType: 'api-namespace' });
+  const promises = await namespaces.map(async ({ metadata }) => {
+    const { name } = metadata;
+    return k8sClient.getServices(name, { resourceType: 'api-service' });
+  });
+
+  if (!promises || !promises.length) {
+    return;
+  }
+
+  const [services] = await Promise.all(promises);
 
   // Reinstantiates and resets the routing paths when there's new services
   if (servicesCount === 1 && services && services.length === 0) {
@@ -181,6 +191,6 @@ export default async function proxy(app, protos) {
   app.use((req, res, next) => router(req, res, next));
   await discoverRoutes();
 
-  // Discover routes at a 5 second interval
+  // Discover routes at an interval
   setInterval(discoverRoutes, process.env.SVC_DISCOVERY_INTERVAL || 5000);
 }

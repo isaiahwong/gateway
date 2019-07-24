@@ -10,6 +10,23 @@ class K8sClient {
       ? new Client1_10({ config: config.getInCluster() })
       : null;
     this.isActive = !!this.client;
+
+    Object.getOwnPropertyNames((Object.getPrototypeOf(this)))
+      .forEach((prop) => {
+        if (prop === 'constructor') {
+          return;
+        }
+        if (typeof this[prop] === 'function') {
+          const initalFn = this[prop].bind(this);
+          this[prop] = (...args) => {
+            if (!this.isActive) {
+              logger.warn('K8S is disabled');
+              return null;
+            }
+            return initalFn(...args);
+          };
+        }
+      });
   }
 
   /**
@@ -17,27 +34,41 @@ class K8sClient {
    * @param namespace services in which namespace it resides
    * @returns Proxy object with handlers for `ws` and `web` requests
    */
-  async getServices(namespace = 'default', serviceType = 'resource') {
-    if (!this.isActive) {
-      logger.warn('K8S is disabled');
-      return null;
-    }
+  async getServices(namespace = 'default', labels = {}) {
+    const { resourceType } = labels;
     const response = await this.client.api.v1.namespace(namespace).services.get();
     if (!response || response.statusCode !== 200 || !response.body || !response.body.items) {
       return null;
     }
 
+    if (!resourceType) {
+      return response.body.items;
+    }
+
     /** Filters response based on labels of service type resource */
     return response.body.items.filter(({ metadata }) => metadata
       && metadata.labels
-      && metadata.labels.serviceType
-      && metadata.labels.serviceType === serviceType
+      && metadata.labels.resourceType
+      && metadata.labels.resourceType === resourceType
     );
   }
 
-  getNamespaces() {
-    // eslint-disable-next-line no-mixed-operators
-    return this.isActive && this.client.api.v1.namespaces('default').get() || null;
+  async getNamespaces(labels = {}) {
+    const { resourceType } = labels;
+    const response = await this.client.api.v1.namespaces().get();
+    if (!response || response.statusCode !== 200 || !response.body || !response.body.items) {
+      return null;
+    }
+
+    if (!resourceType) {
+      return response.body.items;
+    }
+
+    return response.body.items.filter(({ metadata }) => metadata
+      && metadata.labels
+      && metadata.labels.resourceType
+      && metadata.labels.resourceType === resourceType
+    );
   }
 }
 
