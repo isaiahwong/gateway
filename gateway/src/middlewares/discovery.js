@@ -43,6 +43,7 @@ async function _proxyGrpc(serviceName, port) {
     router[method](
       httpPath,
       [
+        bodyParser.urlencoded({ extended: false }),
         bodyParser.json({
           verify(req, res, buf) {
             if (req.originalUrl && req.originalUrl.includes('/webhook')) {
