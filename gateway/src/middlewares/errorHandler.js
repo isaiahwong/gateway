@@ -37,7 +37,10 @@ export default function errorHandler(err, req, res, next) { // eslint-disable-li
       default:
         break;
     }
-    if (responseErr) responseErr.errors = err.errors;
+    if (responseErr) {
+      responseErr.errors = err.errors;
+      responseErr.type = err.type;
+    }
   }
 
   // Handle errors created with 'http-errors' or similar that have a status/statusCode property
@@ -106,6 +109,7 @@ export default function errorHandler(err, req, res, next) { // eslint-disable-li
   const jsonRes = {
     success: false,
     error: responseErr.name,
+    type: responseErr.type,
     message: responseErr.message,
   };
 

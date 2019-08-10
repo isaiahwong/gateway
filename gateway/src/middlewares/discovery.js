@@ -2,6 +2,7 @@
 import express from 'express';
 import logger from 'esther';
 import bodyParser from 'body-parser';
+import helmet from 'helmet';
 import k8sClient from '../libs/k8sClient';
 import Proxy from '../libs/proxy';
 import GrpcProxy from '../libs/grpcProxy';
@@ -156,7 +157,7 @@ async function applyRoutes(services = []) {
 async function discoverRoutes() {
   const services = await k8sClient.getServices('default', { resourceType: 'api-service' });
 
-  // Reinstantiates and resets the routing paths when there's new services
+  // Re-instantiates and resets the routing paths when there's new services
   if (servicesCount === 1 && services && services.length === 0) {
     router = new express.Router();
     servicesCount = 0;
@@ -180,6 +181,7 @@ export default async function proxy(app, protos) {
 
   // Set reference to router
   app.use((req, res, next) => router(req, res, next));
+  app.use(helmet.hidePoweredBy({ setTo: '' }));
   await discoverRoutes();
 
   // Discover routes at an interval

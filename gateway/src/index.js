@@ -22,8 +22,8 @@ logger.init({
   }
 });
 
-process.on('unhandledRejection', (reason, p) => {
-  logger.error(`Unhandled Rejection at: ${p} \nreason: ${reason.stack || reason}`);
+process.on('unhandledRejection', (reason) => {
+  logger.error(`Unhandled Rejection at: ${reason} ${reason.stack}`);
   // send entire app down. k8s will restart it
   process.exit(1);
 });

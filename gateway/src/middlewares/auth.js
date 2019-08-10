@@ -40,7 +40,7 @@ export default async function auth(req, res, next) {
       required,
       exclude
     } = {
-      required: false,
+      required: true,
       exclude: []
     }
   } = service[0];

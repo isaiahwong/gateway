@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 import grpc from 'grpc';
 import pathToRegexp from 'path-to-regexp';
 import logger from 'esther';
@@ -173,9 +174,15 @@ class GrpcProxy {
     client[rpcCall](payload, metadata, (err, response) => {
       if (err) {
         if (err.metadata) {
-          const errors = decodeMetadata('errors', err.metadata);
-          // eslint-disable-next-line no-param-reassign
-          err.errors = errors;
+          const error = decodeMetadata('object', err.metadata);
+          delete err.metadata;
+          if (error) {
+            Object.keys(error).forEach((key) => {
+              if (!err[key]) {
+                err[key] = error[key];
+              }
+            });
+          }
         }
         return next(err);
       }
