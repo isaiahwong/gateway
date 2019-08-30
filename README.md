@@ -1,5 +1,5 @@
 # Gateway
-Gateway provides a single **REST** entry point which then proxies the request to  your microservices in your [Kubernetes][k8s] cluster. Gateway [discovers](#discovery) your cluster for exposed **HTTP** and **gRPC** [services][k8s-service], allowing incoming requests to be proxied to them. Gateway relies Kubernetes's [NGINX ingress][ingress-nginx] for routing. You can then customize [NGINX ingress][ingress-nginx] routing to your needs. `Gateway` works on (local) and Google Kubernetes Engine.
+Gateway provides a single **REST** entry point which then proxies requests to your microservices in your [Kubernetes][k8s] cluster. Gateway [discovers](#discovery) the cluster for exposed **HTTP** and **gRPC** [services][k8s-service], allowing incoming requests to be proxied to them. Gateway relies Kubernetes's [NGINX ingress][ingress-nginx] for routing. You can then customize [NGINX ingress][ingress-nginx] routing to your needs. `Gateway` works on (local) and Google Kubernetes Engine.
 
 Gateway is built with [NodeJs][node] using [ExpressJS][express]
 
