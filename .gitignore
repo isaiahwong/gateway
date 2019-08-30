@@ -50,8 +50,10 @@ yarn-error.log*
 
 # release docs
 release/cert/
-release/cert-manager/
+release/cert-manager/certificate.yaml
+release/cert-manager/issuer.yaml
 release/*secrets*.yaml
+
 
 #Environment variables
 .env

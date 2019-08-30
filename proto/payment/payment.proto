@@ -1,0 +1,192 @@
+syntax = "proto3";
+
+package payment;
+
+import "./schema.proto";
+import "./paypal.proto";
+import "./stripe.proto";
+
+service PaymentService {
+  /*
+   * Payment
+   */
+  rpc CreatePayment(CreatePaymentRequest) returns (CreatePaymentResponse);
+
+  rpc RetrievePayment(RetrievePaymentRequest) returns (RetrievePaymentResponse) {
+    option http = {
+      post: "/api/v1/payment/retrieve",
+    };
+  }
+
+  rpc Refund(RefundRequest) returns (RefundResponse) {
+    option http = {
+      post: "/api/v1/payment/refund",
+    };
+  }
+
+  /*
+   * Stripe
+   */
+  rpc StripeSetupIntent(SetupIntentRequest) returns (SetupIntentResponse) {
+    option http = {
+      post: "/api/v1/payment/s/intent/setup",
+    };
+  }
+  
+  rpc StripeAddCard(AddCardRequest) returns (AddCardResponse) {
+    option http = {
+      post: "/api/v1/payment/s/card/add",
+    };
+  }
+
+  rpc StripeCharge(OnStripeChargeRequest) returns (OnStripeChargeResponse) {
+    option http = {
+      post: "/api/v1/payment/s/charge",
+    };
+  }
+
+  rpc StripeTestWebhook(StripeWebhook) returns (Response) {
+    option http = {
+      post: "/api/v1/payment/stripe/webhook/test",
+      body: "*"
+    };
+  }
+
+  rpc StripePaymentIntentWebhook(StripeWebhook) returns (Response) {
+    option http = {
+      post: "/api/v1/payment/stripe/webhook/paymentintent",
+      body: "*"
+    };
+  }
+
+  /*
+   * Paypal
+   */
+   rpc PaypalCreateOrder(PaypalCreateOrderRequest) returns (PaypalCreateOrderResponse) {
+    option http = {
+      post: "/api/v1/payment/p/order/create",
+    };
+   }
+
+   rpc PaypalProcessOrder(PaypalProcessOrderRequest) returns (Response) {
+    option http = {
+      post: "/api/v1/payment/p/order/process",
+    };
+   }
+
+   rpc PaypalOrderWebhook(PaypalWebhook) returns (Response) {
+    option http = {
+      post: "/api/v1/payment/paypal/webhook/order",
+      body: "*"
+    };
+  }
+
+   rpc PaypalTestWebhook(PaypalWebhook) returns (Response) {
+    option http = {
+      post: "/api/v1/payment/paypal/webhook/test",
+      body: "*"
+    };
+  }
+}
+
+message CreatePaymentRequest {
+  string user = 1;
+  string email = 2;
+}
+
+message CreatePaymentResponse {
+  bool success = 0;
+  Payment payment = 1;
+}
+
+message RetrievePaymentRequest {
+  string user = 0;
+}
+
+message RetrievePaymentResponse {
+  bool success = 0;
+  Payment payment = 1;
+}
+
+message RefundRequest {
+  string user = 0;
+  string transaction = 1;
+}
+
+message RefundResponse {
+  bool success = 0;
+  Refund refund = 1;
+  Transaction transaction = 2;
+}
+
+message AddCardRequest {
+  string payment_method = 0;
+  string user = 1;
+}
+
+message AddCardResponse {
+  repeated PaymentMethod all_cards = 0;
+  InvoiceSettings invoice_settings = 1; // default payment
+  bool success = 2;
+}
+
+message OnStripeChargeRequest {
+  string user = 0;
+  string email = 1;
+  Items items = 2;
+  string currency = 3;
+  double subtotal = 4;
+  double total = 5;
+  bool off_session = 6;
+}
+
+message OnStripeChargeResponse {
+  PaymentIntent payment_intent = 0;
+  bool success = 1;
+}
+
+message SetupIntentRequest {
+  string user = 0;
+  bool on_session  = 1;
+}
+
+message SetupIntentResponse {
+  bool success = 0;
+  string client_secret = 1;
+}
+
+message StripeWebhook {
+  bytes body = 1;
+}
+
+message PaypalCreateOrderRequest {
+  string user = 0;
+  Items items = 1;
+  string currency = 2;
+  double total = 3;
+  string intent = 4;
+  ApplicationContext application_context = 5;
+}
+
+message PaypalProcessOrderRequest {
+  string user = 0;
+  string order_id = 1;
+}
+
+message PaypalCreateOrderResponse {
+  bool success = 0;
+  string order_id = 1;
+  string href = 2;
+  string rel = 3;
+  string method = 4;
+}
+
+message PaypalWebhook {
+  bytes body = 1;
+}
+
+message Response {
+  bool success = 0;
+}
+
+message Empty {}

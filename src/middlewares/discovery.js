@@ -176,12 +176,17 @@ async function discoverRoutes() {
  * @param {Array} protos proto definitions to be mapped with http methods
  */
 export default async function proxy(app, protos) {
+  if (k8sClient.disableClient) {
+    logger.warn('K8S discovery disabled');
+    return;
+  }
   global.services = {};
   grpcProxy.loadServices(protos);
 
   // Set reference to router
   app.use((req, res, next) => router(req, res, next));
   app.use(helmet.hidePoweredBy({ setTo: '' }));
+
   await discoverRoutes();
 
   // Discover routes at an interval

@@ -5,8 +5,8 @@ import logger from 'esther';
 class K8sClient {
   constructor() {
     // Allows running app without loading app in k8s cluster
-    this.disableClient = process.env.DISABLE_K8S_CLIENT;
-    this.client = (this.disableClient !== 'true')
+    this.disableClient = process.env.DISABLE_K8S_CLIENT === 'true';
+    this.client = (!this.disableClient)
       ? new Client1_10({ config: config.getInCluster() })
       : null;
     this.isActive = !!this.client;

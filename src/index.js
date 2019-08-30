@@ -1,3 +1,5 @@
+require('@babel/polyfill');
+
 // Setup Bluebird as the global promise library
 global.Promise = require('bluebird');
 

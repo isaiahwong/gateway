@@ -3,9 +3,6 @@ kind: Config
 build:
   artifacts:
   - image: registry.gitlab.com/isaiahwong/cluster/api/gateway
-    context: gateway
-    docker:
-      dockerfile: Dockerfile.dev
 deploy:
   kubectl:
     manifests:

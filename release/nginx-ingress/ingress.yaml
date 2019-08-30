@@ -51,7 +51,7 @@ spec:
       - isaiahwong.dev
       - www.isaiahwong.dev
       - api.isaiahwong.dev
-      secretName: isaiahwong-dev
+      secretName: isaiahwongdev-secret
   rules:
     - host: www.isaiahwong.dev
       http:

@@ -1,0 +1,168 @@
+syntax = "proto3";
+
+package payment;
+
+message Metadata {
+  string user = 0;
+  string transaction = 1;
+}
+
+message BillingDetails {
+  message Address {
+    string city = 1;
+    string country = 2;
+    string line1 = 3;
+    string line2 = 4;
+    double postal_code = 5;
+    string state = 6;
+  }
+  Address address = 1;
+  string email = 2;
+  string name = 3;
+  string phone = 4;
+}
+
+message FraudDetails {
+  string stripe_report = 1;
+  string user_report = 2;
+}
+
+message InvoiceSettings {
+  message CustomFields {
+    string name = 0;
+    string value = 1;
+  }
+  CustomFields custom_fields = 0;
+  string default_payment_method = 1;
+  string footer = 2;
+}
+
+message Card {
+  message THREEDSecureUsage {
+    bool supported = 0;
+  }
+  string brand = 1;
+  string country = 2;
+  double exp_month = 3;
+  double exp_year = 4;
+  string fingerprint = 5;
+  string funding = 6;
+  double last4 = 7;
+  THREEDSecureUsage three_d_secure_usage = 8;
+}
+
+message PaymentMethod {
+  string id = 0;
+  string object = 1;
+  BillingDetails billing_details = 2;
+  Card card = 3;
+  double created = 4;
+  string customer = 5;
+  bool livemode = 6;
+  Metadata metadata = 7;
+  string type = 8;
+}
+
+message PaymentMethodDetails {
+  Card card = 1;
+  string type = 2;
+}
+
+message Charge {
+  string id = 1;
+  string object = 2; 
+  double amount = 3;
+  double amount_refunded = 4;
+  string balance_transaction = 5;
+  BillingDetails billing_details = 6;
+  bool captured = 7;
+  double created = 8;
+  string currency = 9;
+  string customer = 10;
+  string description = 11;
+  string destination = 12;
+  string dispute = 13;
+  string failure_code = 14;
+  string failure_message = 15;
+  FraudDetails fraud_details = 16;
+  bool paid = 17;
+  string payment_intent = 18;
+  string payment_method = 19;
+  PaymentMethodDetails payment_method_details = 20;
+  string receipt_email = 21;
+  string receipt_number = 22;
+  string receipt_url = 23;
+  string review = 24;
+  string status = 25;
+}
+
+message Charges {
+  string object = 1;
+  repeated Charge data = 2;
+  bool has_more = 3;
+  double total_count = 4;
+  string url = 6;
+}
+
+message PaymentIntent {
+  message LastPaymentError {
+    string charge = 0;
+    string code = 1;
+    string doc_url = 2;
+    string message = 3;
+    string type = 4;
+    string param = 5;
+    PaymentMethod payment_method = 6;
+  }
+  
+
+  string id = 1;
+  string object = 2;
+  double amount = 3;
+  double canceled_at = 4;
+  string cancellation_reason = 5;
+  string capture_method = 6;
+  Charges charges = 7;
+  string client_secret = 8;
+  string confirmation_method = 9;
+  double created = 10;
+  string currency = 11;
+  string customer = 12;
+  string description = 13;
+  string invoice = 14;
+  LastPaymentError last_payment_error = 15;
+  bool livemode = 16;
+  Metadata metadata = 17;
+  string payment_method = 18;
+  repeated string payment_method_types = 19;
+  string receipt_email = 20;
+  string review = 21;
+  string status = 22;
+}
+
+message SetupIntent {
+  message LastSetupError {
+    string code = 0;
+    string decline_code = 1;
+    string doc_url = 2;
+    string message = 3;
+    string param = 4;
+    PaymentMethod payment_method = 5;
+    string type = 6;
+  }
+
+  string id = 0;
+  string object = 1;
+  string cancellation_reason = 2;
+  string client_secret = 3;
+  double created = 4;
+  string customer = 5;
+  string description = 6;
+  LastSetupError last_setup_error = 7;
+  bool livemode = 8;
+  Metadata metadata = 9;
+  string payment_method = 10;
+  repeated string payment_method_types = 14;
+  string status = 15;
+  string usage = 16;
+}

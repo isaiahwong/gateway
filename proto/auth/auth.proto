@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package auth;
+
+service AuthService {
+  rpc IsAuthenticated(AuthenticateRequest) returns (AuthenticateResponse) {}
+}
+
+message AuthenticateRequest {
+  string sessionId = 1;
+}
+
+message AuthenticateResponse {
+  User user = 1;
+  bool isAuthenticated = 2;
+}
+
+message User {
+  message Auth {
+    message ProfileName {
+      string familyName = 1;
+      string givenName = 2;
+      string middleName = 3;
+    }
+    
+    message ProfileEmails {
+      string value = 1;
+      string type = 2;
+    }
+    
+    message ProfilePhotos {
+      string value = 1;
+    }
+    
+    message UserProfileFacebook {
+      string provider = 1;
+      string id = 2;
+      string displayName = 3;
+      ProfileName name = 4;
+      repeated ProfileEmails emails = 5;
+      repeated ProfilePhotos photos = 6;
+    }
+    
+    message UserProfileGoogle {
+      string provider = 1;
+      string id = 2;
+      string displayName = 3;
+      ProfileName name = 4;
+      repeated ProfileEmails emails = 5;
+      repeated ProfilePhotos photos = 6;
+    }  
+
+    UserProfileFacebook facebook = 1;
+    UserProfileGoogle google = 2;
+    string email = 3;
+    string firstname = 4;
+    string lastname = 5;
+    string name = 6;
+    string picture = 7;
+    string password = 8;
+    string password_hash_method = 9;
+    string password_id = 10;
+    string password_reset_token = 11;
+    int32 password_reset_expires = 12;
+    int32 password_modified = 13;
+
+    bool verified = 14;
+    int32 verified_date = 15;
+    string verification_token = 16;
+    int32 verification_token_expires = 17;
+
+    int32 captcha_challenge_ts = 18;
+  }
+
+  // Preferences
+  message Preferences {
+    message EmailNotifications {
+      bool unsubscribe_from_all = 1;
+    }
+
+    message PushNotifications {
+      bool unsubscribe_from_all = 1; 
+    }
+
+    string language = 1;
+    EmailNotifications email_notifications = 2;
+    PushNotifications push_notifications = 3;
+  }
+
+  Auth auth = 1;
+  Preferences preferences = 2;
+  int32 created_at = 3;
+  int32 updated_at = 4;
+  int32 logged_in = 5;
+  string logged_in_ip = 6;
+}

@@ -1,0 +1,36 @@
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: name-tls # CHANGE
+spec:
+  secretName: secret-name-dev # CHANGE
+  issuerRef:
+    name: letsencrypt-prod
+    # We can reference ClusterIssuers by changing the kind here.
+    # The default value is Issuer (i.e. a locally namespaced Issuer)
+    kind: ClusterIssuer
+  commonName: domain.com # CHANGE
+  dnsNames:
+  - example.com # CHANGE
+  - www.example.com # CHANGE
+  - api.example.com # CHANGE
+  # ACME challenges:
+  acme:
+    config:
+    - dns01:
+        provider: cloudflare-dns
+      domains:
+      - example.com # CHANGE
+      - www.example.com # CHANGE
+      - api.example.com # CHANGE
+
+    # Uncomment
+    # Http Acme 
+    # config:
+    # - http01:
+    #     ingressClass: nginx
+    #   domains:
+        # - example.com 
+        # - www.example.com
+        # - api.example.com
+    

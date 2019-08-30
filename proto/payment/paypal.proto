@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package payment;
+
+message ApplicationContext {
+  string landing_page = 0;
+  string return_url = 1;
+  string cancel_url = 2;
+}

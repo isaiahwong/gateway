@@ -1,0 +1,41 @@
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    # You must replace this email address with your own.
+    # Let's Encrypt will use this to contact you about expiring
+    # certificates, and issues related to your account.
+    email: 'you_email@gmail.com'
+    server: https://acme-v02.api.letsencrypt.org/directory
+
+    privateKeySecretRef:
+      # Secret resource used to store the account's private key.
+      name: letsencrypt-prod
+    # https://docs.cert-manager.io/en/latest/tasks/issuers/setup-acme/http01/index.html
+    # Enable the HTTP01 challenge mechanism for this Issuer
+    # http01: {}
+
+    # https://docs.cert-manager.io/en/latest/tasks/issuers/setup-acme/dns01/index.html
+    # Enable the DNS01 challenge 
+    dns01:
+      providers:
+      - name: cloudflare-dns
+        cloudflare:
+          email: your_email.com
+          apiKeySecretRef:
+            name: cloudflare-api-key
+            key: api-key
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloudflare-api-key
+  namespace: cert-manager
+type: Opaque
+data:
+  api-key: eW91cmFwaWtleQ== # base64 api key from cloudflare
+
