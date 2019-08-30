@@ -1,7 +1,7 @@
 # Gateway
-`Gateway` provides a `REST` entry point amalgamating your microservices in your [Kubernetes][k8s] cluster with **configuration**. `Gateway` relies Kubernetes's [NGINX ingress][ingress-nginx] for routing. `Gateway` [discovers](#discovery) your cluster for exposed `HTTP` and `gRPC` [services][k8s-service] and makes them available through a single entry point. `Gateway` works on (local) and Google Kubernetes Engine.
+Gateway provides a single **REST** entry point which then proxies the request to  your microservices in your [Kubernetes][k8s] cluster. Gateway [discovers](#discovery) your cluster for exposed **HTTP** and **gRPC** [services][k8s-service], allowing incoming requests to be proxied to them. Gateway relies Kubernetes's [NGINX ingress][ingress-nginx] for routing. You can then customize [NGINX ingress][ingress-nginx] routing to your needs. `Gateway` works on (local) and Google Kubernetes Engine.
 
-`Gateway` depends on Kubernetes's [Service Discovery][k8s-svc-discovery]. Currently it depends on Kubernetes Client - [GoDaddy Client][godaddy-client]
+Gateway is built with [NodeJs][node] using [ExpressJS][express]
 
 # Table of Contents
 * [Getting Started](#getting-started)
@@ -166,13 +166,16 @@ ENABLE_CONSOLE_LOGS_IN_PROD=false
 ENABLE_CONSOLE_LOGS_IN_TEST=true
 ```
 
+# Dependencies
+`Gateway` utilise Kubernetes's [Service Discovery][k8s-svc-discovery] and depends on Kubernetes Client - [GoDaddy Client][godaddy-client]
+
 [Isaiah]: https://www.iisaiah.com
 [brew]: https://brew.sh/
 [minikube]: https://github.com/kubernetes/minikube/releases/  
 [vbox]: https://www.virtualbox.org/wiki/Downloads
-[redux]: https://redux.js.org/introduction
+[express]: https://github.com/expressjs/express
 
-[node]: https://nodejs.org
+[node]: https://github.com/nodejs/node
 [skaffold]: https://github.com/GoogleContainerTools/skaffold
 [mailer]: https://nodemailer.com/
 

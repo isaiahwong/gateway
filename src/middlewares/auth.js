@@ -1,23 +1,21 @@
-/* eslint-disable no-unused-vars */
 import fetch from 'node-fetch';
 import Bluebird from 'bluebird';
 import logger from 'esther';
 import { filter } from 'lodash';
 import pathToRegexp from 'path-to-regexp';
-import { InternalServerError, NotAuthorized } from 'horeb';
+import { NotAuthorized } from 'horeb';
 
 fetch.Promise = Bluebird;
 
 const AUTH_SERVICE = process.env.AUTH_SERVICE || 'auth-service';
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || '/api/v1/auth/';
 
 /**
  * Authentication Middleware
  */
 export default async function auth(req, res, next) {
   if (!global.services || !global.services[AUTH_SERVICE]) {
-    logger.error('Auth service is not discovered or not started');
-    next(new InternalServerError()); return;
+    logger.warn('Auth service is not discovered or not defined. You can define an auth service in your environment AUTH_SERVICE=auth-service');
+    next(); return;
   }
 
   const service = filter(global.services, (svc) => {
@@ -31,9 +29,23 @@ export default async function auth(req, res, next) {
 
   const {
     serviceName: authName,
-    servicePath: authPath,
-    port: authPort,
   } = global.services[AUTH_SERVICE];
+
+  let {
+    port: authPort,
+    servicePath: authPath
+  } = global.services[AUTH_SERVICE];
+
+  if (!authPort) {
+    logger.warn('Auth port is not defined, using default port 5000');
+    authPort = 5000;
+  }
+
+  if (!authPath) {
+    logger.warn('Auth path is not defined, setting to /v1/auth');
+    authPath = '/v1/auth';
+  }
+
 
   const {
     authentication: {
