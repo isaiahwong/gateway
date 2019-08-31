@@ -80,7 +80,7 @@ export default async function auth(req, res, next) {
       headers: req.headers,
     });
 
-  if (response.status === 401) {
+  if (response.status > 204) {
     next(new NotAuthorized()); return;
   }
   next();
