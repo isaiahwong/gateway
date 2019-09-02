@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package gateway;
+
+service GatewayWebhook {
+  rpc discover(DiscoverRequest) returns (Response);
+}
+
+message DiscoverRequest {
+  bytes body = 1;
+}
+
+message Response {}

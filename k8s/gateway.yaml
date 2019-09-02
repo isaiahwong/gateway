@@ -1,3 +1,10 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gateway
+
+---
+
 # Service Account
 apiVersion: v1
 kind: ServiceAccount
@@ -45,6 +52,9 @@ spec:
   - name: http
     port: 5000
     targetPort: gateway-port
+  - name: grpc
+    port: 50051
+    targetPort: webhook-port
   selector: 
     app: gateway-service
   type: ClusterIP
@@ -74,6 +84,8 @@ spec:
         ports:
         - name: gateway-port
           containerPort: 5000
+        - name: webhook-port
+          containerPort: 50051
 
         envFrom:
         - configMapRef:

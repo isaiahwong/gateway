@@ -1,11 +1,15 @@
-apiVersion: skaffold/v1beta11
+apiVersion: skaffold/v1beta13
 kind: Config
 build:
   artifacts:
   - image: registry.gitlab.com/isaiahwong/cluster/api/gateway
+    context: gateway
+  - image: registry.gitlab.com/isaiahwong/cluster/api/gateway/webhook
+    context: webhook
 deploy:
   kubectl:
     manifests:
+    - k8s/webhook.yaml
     - k8s/env.yaml
     - k8s/gateway.yaml
     - k8s/nginx-ingress/ingress.yaml
