@@ -4,13 +4,9 @@ build:
   artifacts:
   - image: registry.gitlab.com/isaiahwong/cluster/api/gateway
     context: gateway
-  - image: registry.gitlab.com/isaiahwong/cluster/api/gateway/webhook
-    context: webhook
+
 deploy:
   kubectl:
     manifests:
-    - k8s/webhook.yaml
-    - k8s/env.yaml
     - k8s/gateway.yaml
-    - k8s/nginx-ingress/ingress.yaml
     - k8s/nginx-ingress/mandatory.yaml

@@ -1,4 +1,4 @@
-import grpcLoader from '../../../src/libs/grpcLoader';
+import grpcLoader from '../../../src/lib/grpcLoader';
 
 describe('Grpc Loader', () => {
 

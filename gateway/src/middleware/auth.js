@@ -1,40 +1,31 @@
 import fetch from 'node-fetch';
 import Bluebird from 'bluebird';
 import logger from 'esther';
-import { filter } from 'lodash';
 import pathToRegexp from 'path-to-regexp';
 import { NotAuthorized } from 'horeb';
+import discovery from '../lib/discovery';
 
 fetch.Promise = Bluebird;
 
-const AUTH_SERVICE = process.env.AUTH_SERVICE || 'auth-service';
+const AUTH_SERVICE = process.env.AUTH_SERVICE || 'auth-service.default';
 
 /**
  * Authentication Middleware
  */
 export default async function auth(req, res, next) {
-  if (!global.services || !global.services[AUTH_SERVICE]) {
+  if (!discovery.services || !discovery.services[AUTH_SERVICE]) {
     logger.warn('Auth service is not discovered or not defined. You can define an auth service in your environment AUTH_SERVICE=auth-service');
     next(); return;
   }
+  const service = discovery.getServiceIncludesUrl(req.originalUrl);
 
-  const service = filter(global.services, (svc) => {
-    const { servicePath } = svc;
-    return req.originalUrl.includes(servicePath);
-  });
-
-  if (!service || !service[0]) {
+  if (!service) {
     next(); return;
   }
 
-  const {
-    serviceName: authName,
-  } = global.services[AUTH_SERVICE];
-
-  let {
-    port: authPort,
-    servicePath: authPath
-  } = global.services[AUTH_SERVICE];
+  const { dnsPath: authName, ports } = discovery.services[AUTH_SERVICE];
+  let { path: authPath } = discovery.services[AUTH_SERVICE];
+  let authPort = ports[0].port;
 
   if (!authPort) {
     logger.warn('Auth port is not defined, using default port 5000');
@@ -43,19 +34,18 @@ export default async function auth(req, res, next) {
 
   if (!authPath) {
     logger.warn('Auth path is not defined, setting to /v1/auth');
-    authPath = '/v1/auth';
+    authPath = '/api/v1/auth';
   }
-
 
   const {
     authentication: {
       required,
       exclude
     } = {
-      required: true,
+      required: 'false',
       exclude: []
     }
-  } = service[0];
+  } = service;
 
   // Env are treated as strings hence comparing it to literal value
   if (required === 'false') {

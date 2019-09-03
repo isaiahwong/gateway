@@ -4,14 +4,14 @@ require('@babel/polyfill');
 global.Promise = require('bluebird');
 
 // load env variables
-require('./libs/setupEnv').config();
+require('./lib/setupEnv').config();
 
 const path = require('path');
 const logger = require('esther');
 const pkg = require('../package.json');
 const HttpServer = require('./server');
 const WebhookServer = require('./webhook');
-const grpcLoader = require('./libs/grpcLoader');
+const grpcLoader = require('./lib/grpcLoader');
 
 // initialise logger
 logger.init({

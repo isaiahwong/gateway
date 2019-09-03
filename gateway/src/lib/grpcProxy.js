@@ -63,7 +63,7 @@ class GrpcProxy {
     );
   }
 
-  startClient(serviceName, port) {
+  startClient(serviceName, dnsPath, port) {
     return new Promise((resolve, reject) => {
       const Client = this.getService(serviceName);
       if (!Client) {
@@ -72,13 +72,13 @@ class GrpcProxy {
       }
 
       this.clients[serviceName] = new Client(
-        `${serviceName}:${port}`,
+        `${dnsPath}:${port}`,
         grpc.credentials.createInsecure()
       );
 
       return this.clients[serviceName]
         .waitForReady(
-          Date.now() + 5000,
+          Number.POSITIVE_INFINITY,
           // eslint-disable-next-line no-mixed-operators
           err => err && reject(err) || resolve(this.clients[serviceName])
         );
@@ -98,6 +98,7 @@ class GrpcProxy {
   async call(req, res, next, options) {
     const {
       serviceName,
+      dnsPath,
       port,
       method,
       body
@@ -107,7 +108,7 @@ class GrpcProxy {
       logger.warn(`${serviceName} has not started, will attempt to start it.`);
       // Ends function call if service is not found
 
-      const svc = await this.startClient(serviceName, port);
+      const svc = await this.startClient(serviceName, dnsPath, port);
       if (!svc) {
         return;
       }

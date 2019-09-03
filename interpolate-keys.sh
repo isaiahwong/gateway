@@ -18,11 +18,11 @@ ca_pem_b64="$(openssl base64 -A <"${keydir}/ca.crt")"
 tls_crt="$(cat ${keydir}/webhook-server-tls.crt | base64)"
 tls_key="$(cat ${keydir}/webhook-server-tls.key | base64)"
 
-# Replaces the crt and key in webhook.yaml
-find $basedir -name "webhook.yaml" -exec sed -ie "s/tls.crt:.*/tls.crt: ${tls_crt}/g; s/tls.key:.*/tls.key: ${tls_key}/g;" {} +;
+# Replaces the crt and key in gateway.yaml
+find $basedir -name "gateway.yaml" -exec sed -i '' -e "s/tls.crt:.*/tls.crt: ${tls_crt}/g; s/tls.key:.*/tls.key: ${tls_key}/g;" {} +;
 
-# Replaces the cabundle in webhook.tyaml\
-find $basedir -name "webhook.yaml" -exec sed -ie "s/caBundle:.*/caBundle: ${ca_pem_b64}/g;" {} +;
+# Replaces the cabundle in gateway.yaml
+find $basedir -name "gateway.yaml" -exec sed -i '' -e"s/caBundle:.*/caBundle: ${ca_pem_b64}/g;" {} +;
 
 
-echo "k8s/webhook.yaml has been interpolated with keys"
+echo "k8s/gateway.yaml has been interpolated with keys"

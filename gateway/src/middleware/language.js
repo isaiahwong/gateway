@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import i18n from '../libs/i18n';
+import i18n from '../lib/i18n';
 
 const { translations } = i18n;
 

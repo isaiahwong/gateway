@@ -1,3 +1,4 @@
+/* eslint-disable no-plusplus */
 /* eslint camelcase: 0 */
 import { config, Client1_10 } from 'kubernetes-client';
 import logger from 'esther';
@@ -29,46 +30,58 @@ class K8sClient {
       });
   }
 
+  static filter(labels) {
+    return ({ metadata }) => {
+      let match = true;
+      if (metadata && metadata.labels) {
+        const labelKeys = Object.keys(labels);
+        if (!labelKeys) {
+          match = false; return match;
+        }
+        for (let i = 0; i < labelKeys.length; i++) {
+          const key = labelKeys[i];
+          if (!metadata.labels[key]) {
+            match = false; return match;
+          }
+          if (metadata.labels[key] !== labels[key]) {
+            match = false; return match;
+          }
+        }
+      }
+      return match;
+    };
+  }
+
   /**
    * Queries k8s for services
    * @param namespace services in which namespace it resides
    * @returns Proxy object with handlers for `ws` and `web` requests
    */
-  async getServices(namespace = 'default', labels = {}) {
-    const { resourceType = 'api-service' } = labels;
+  async getServices(namespace = 'default', labels) {
     const response = await this.client.api.v1.namespace(namespace).services.get();
     if (!response || response.statusCode !== 200 || !response.body || !response.body.items) {
       return null;
     }
 
-    if (!resourceType) {
+    if (!labels) {
       return response.body.items;
     }
 
     /** Filters response based on labels of service type resource */
-    return response.body.items.filter(({ metadata }) => metadata
-      && metadata.labels
-      && metadata.labels.resourceType
-      && metadata.labels.resourceType === resourceType
-    );
+    return response.body.items.filter(K8sClient.filter(labels));
   }
 
-  async getNamespaces(labels = {}) {
-    const { resourceType } = labels;
+  async getNamespaces(labels) {
     const response = await this.client.api.v1.namespaces().get();
     if (!response || response.statusCode !== 200 || !response.body || !response.body.items) {
       return null;
     }
 
-    if (!resourceType) {
+    if (!labels) {
       return response.body.items;
     }
 
-    return response.body.items.filter(({ metadata }) => metadata
-      && metadata.labels
-      && metadata.labels.resourceType
-      && metadata.labels.resourceType === resourceType
-    );
+    return response.body.items.filter(K8sClient.filter(labels));
   }
 }
 

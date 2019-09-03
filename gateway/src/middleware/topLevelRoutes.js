@@ -2,10 +2,6 @@ import express from 'express';
 
 const topLevelRouter = new express.Router();
 
-topLevelRouter.all('/webhook', (req, res) => {
-  res.ok();
-});
-
 topLevelRouter.all('/hz', (req, res) => {
   res.ok();
 });

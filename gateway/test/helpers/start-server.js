@@ -1,4 +1,4 @@
-require('../../src/libs/setupEnv').config();
+require('../../src/lib/setupEnv').config();
 
 process.env.NODE_ENV = 'test';
 

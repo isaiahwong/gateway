@@ -9,4 +9,4 @@ chai.use(require('chai-as-promised'));
 global.sandbox = sinon.createSandbox();
 global.expect = chai.expect;
   
-require('../../src/libs/setupEnv').config();
+require('../../src/lib/setupEnv').config();

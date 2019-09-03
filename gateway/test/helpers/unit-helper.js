@@ -1,6 +1,6 @@
 import { defaultsDeep } from 'lodash';
 
-import i18n from '../../src/libs/i18n';
+import i18n from '../../src/lib/i18n';
 
 export function generateRes(options = {}) {
   const defaultRes = {

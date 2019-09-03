@@ -1,7 +1,131 @@
+##################################################
+## Ingress
+##################################################
+
 apiVersion: v1
 kind: Namespace
 metadata:
   name: gateway
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-service
+  namespace: gateway
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            backend: 
+              serviceName: gateway-service
+              servicePort: 5000
+
+---
+
+##################################################
+## Gateway Service
+##################################################
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-service
+  namespace: gateway
+spec:
+  ports:
+  - name: http
+    port: 5000
+    targetPort: gateway-port
+  - name: https
+    port: 443
+    targetPort: webhook-port
+  selector: 
+    app: gateway-service
+  type: ClusterIP
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-env-configmap
+  namespace: gateway
+data:
+  NODE_ENV: "development"
+  PORT: "5000"
+  MAINTENANCE_MODE: "false"
+  DISABLE_K8S_CLIENT: "false"
+  SVC_DISCOVERY_INTERVAL: "5000"
+  ENABLE_STACKDRIVER: "false"
+  DEV_CLIENT: "http://localhost:3000"
+  DOMAIN: "https://api.isaiahwong.dev"
+  FRONT_END: "https://www.isaiahwong.dev"
+
+  DEFAULT_NAMESPACE: 'default'
+  LABEL_RESOURCE_TYPE: 'api-service'
+  AUTH_SERVICE: "auth-service.default"
+  AUTH_SERVICE_URL: "/v1/auth/"
+   # store in secrets in production
+  WEBHOOK_SECRET_KEY: UVNYdEVhRGxYWjZDaUh1bFdaNkZwUmVTMlExM2pEcGpqTG1HRDcwYlNnUUlEQVFBQg== 
+
+---
+
+# Gateway Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-service
+  namespace: gateway
+spec:
+  replicas: 1
+  selector: 
+    matchLabels:
+      app: gateway-service
+  template: 
+    metadata: 
+      labels: 
+        app: gateway-service
+    spec:
+      serviceAccountName: api-gateway
+      containers:
+      - name: gateway
+        image: registry.gitlab.com/isaiahwong/cluster/api/gateway
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: gateway-port
+          containerPort: 5000
+        - name: webhook-port
+          containerPort: 8443
+
+        envFrom:
+        - configMapRef:
+            name: gateway-env-configmap
+            
+        volumeMounts:
+        - name: webhook-tls-certs
+          mountPath: /run/secrets/tls
+          readOnly: true
+        
+        livenessProbe:
+          httpGet:
+            path: /hz
+            port: 5000
+          initialDelaySeconds: 60
+          periodSeconds: 120
+
+      volumes:
+      - name: webhook-tls-certs
+        secret:
+          secretName: webhook-server-tls
+
+      imagePullSecrets:
+      - name: gitlab-auth
 
 ---
 
@@ -10,14 +134,14 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: api-gateway
-  namespace: default
+  namespace: gateway
 ---
 
 # Role
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata: 
-  namespace: default
+  namespace: gateway
   name: api-gateway
 rules: 
 - apiGroups: ["", "extensions", "apps"]
@@ -38,80 +162,40 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: api-gateway
-    namespace: default
+    namespace: gateway
     
 --- 
 
-# Service
-apiVersion: v1
-kind: Service
+##################################################
+## Gateway Webhook
+##################################################
+
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
 metadata:
-  name: gateway-service
-spec:
-  ports:
-  - name: http
-    port: 5000
-    targetPort: gateway-port
-  - name: grpc
-    port: 50051
-    targetPort: webhook-port
-  selector: 
-    app: gateway-service
-  type: ClusterIP
+  name: gateway-webhook
+webhooks:
+  - name: gateway-service.gateway.svc
+    clientConfig:
+      service:
+        name: gateway-service
+        namespace: gateway
+        path: "/webhook"
+      caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUMwRENDQWJnQ0NRQzU5bEwyM0tKcnVEQU5CZ2txaGtpRzl3MEJBUXNGQURBcU1TZ3dKZ1lEVlFRRERCOUIKWkcxcGMzTnBiMjRnUTI5dWRISnZiR3hsY2lCWFpXSm9iMjlySUVOQk1CNFhEVEU1TURrd016QTJNRGd5TkZvWApEVEU1TVRBd016QTJNRGd5TkZvd0tqRW9NQ1lHQTFVRUF3d2ZRV1J0YVhOemFXOXVJRU52Ym5SeWIyeHNaWElnClYyVmlhRzl2YXlCRFFUQ0NBU0l3RFFZSktvWklodmNOQVFFQkJRQURnZ0VQQURDQ0FRb0NnZ0VCQUxnc1BRRFoKM3FOY1hVUVlMMEJPYUE3RWhtRk1tZjFLYktDS2dQbkFLQitodVB0K1drL200dDJFZ3pOdVZuVlU1M1VPR3I2TApjQ2JJcm0vV1FiT1d6T3VBankwdHkyRHVvS1cxbHltKythWURYOGU2cGRXbWdqMitIZlBoUm1CeGg5N2QyZjFiCm8xUzk2bG12S0ZxekVRK0ZjRmsyRUc3Y0VNdEJPUThHY2V6b3BZYkV3L2RiOEVmdzBMa3dDM1plNjFrbkIrV1cKWWJtZEhTamhmUmw5bFNWemRYcGZLYmtPL1BBeWtVYzVjTVI5LzFWaTlGc1N2bnFhTDBIRzE5S0Q3K3NtOGk4eAp6RnRMdlNFS1BoZ3YvbTNxOFJEZGtqRzEvUW04T3lacWZxNVJLUThCRmViUnh6VUdRYWJrUlhXWXg5L2pybjBvCkswZkk0enVSZWdWU1pORUNBd0VBQVRBTkJna3Foa2lHOXcwQkFRc0ZBQU9DQVFFQUs3Uk1DVUxOeG9XSk9TZm4KVXJ3SkpBa0hicEx1dkwrdW8vVlpoS0hibXBKVUtCMEsvb1NpWm5jQzk3MUdsemVQSlBpQXQ3N1VxaE1la0taWgovSjY2NVpoTXJYRUowcTlLUHJnTjNyb0NDa2ZvTFlNM2dTY2drZi9IM0NIMEhJaENiQzAwS3VDdENVb1V0NTFvCmdHZUdhYkpKdU8vUFY1MXprekVWSURoNXJ4WkxDVDB5SVE5bTR4bUJmSEwwZHFqNHhsVWowQVNwZStabmU3VnAKeGtXTlg2cDUySHRiRzFiL29GR1pyUDljMHovNGhJNlNwUHZQY3BHTnFnVWs5Y3Flcmx3THVPSjUzZ0M1eVE5UgpneVFrQm01UVUyWktxSGtvelI2TzZadlVoeDNOcjdvNlpOUDJVbk0vNWxBallXRVdjSHBQVjJMMlltamFpeER1CmY5ZC9CUT09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+    rules:
+      - operations: ["*"]
+        apiGroups: ["*"]
+        apiVersions: ["*"]
+        resources: ["services"]
 
 ---
 
-# Deployment
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN6RENDQWJRQ0NRQ2Z6bDhwb0l5MXJ6QU5CZ2txaGtpRzl3MEJBUVVGQURBcU1TZ3dKZ1lEVlFRRERCOUIKWkcxcGMzTnBiMjRnUTI5dWRISnZiR3hsY2lCWFpXSm9iMjlySUVOQk1CNFhEVEU1TURrd016QTJNRGd5TkZvWApEVEU1TVRBd016QTJNRGd5TkZvd0pqRWtNQ0lHQTFVRUF3d2JaMkYwWlhkaGVTMXpaWEoyYVdObExtZGhkR1YzCllYa3VjM1pqTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFyM2NhRm1NMXNhRHcKWmhIallmZkFYUUUxZEU2NzltSlpFZm5ZdjBNTFVxSTJieGlNSW9yeUszd2NWSkt3dWJJMVFwWVZlVnROSEpsRwpvU1VuVnJGVjFSWmNwOTVBeDdoVS9ZTDBhbTJ1amJQZTZoM2kvcDRVelVxUEgwVmd3T05HbklWVUJQZGdHTHcxCit0Nk0rWFhqak5CK3R1Y0FaWFY3V2ltR09aUFk4ZnZSR3o4OUw1Nm9Qb3lUdXFQOFdxWUtGOTVMY3ZyWnhXdUoKR0NlS3RFL244L1RsR0dJSDJGdEVaVHR3dHh5c2h5eWJlOFhwSXhESnBTK0R3Mno2ZzNoRUNyYkVQcGQyZ25PSgorMjJXWmRTaUVRSERwRk8ydWpmUkxFNUY0c21hWlBNZjMrb3FXeTZaVHR2NDJGckxyWS9SV0dRRHE5K3RzNUI4CnZsL0JnaGtMd3dJREFRQUJNQTBHQ1NxR1NJYjNEUUVCQlFVQUE0SUJBUUFRZmFLandBVkVlTkxTb2FkcjlxT2gKSmhYUjdpTmpPekZRUTQrT3RMQktOTUxTa1A3SXdqR3RZeGlpQVNQaTZ2UC9XMmFaTEJTRklKaCtXT0c3Zk5GKwoyM3NzWGVHOUpxcTZlYjVwYnFLUGhUQ2EraS9ONGNHSUxZR3hNSWZvZWpoTDJPWk5GWGJOWDA0U3ZGZ0VuUHJZCnYxb2Z0aEQ0bHhvckNDTmZwRWo3SmJ6L0ZHaGpsejJtWU1GaEFpVzZGZzlyd1R5d2dUaFN0ZWp0enZYdVBBZ2sKU1YwKytiQ3hVRDRuM2s3eG44Ny93a2x2a0tXNTZIaFNXajlwc2ZNcno4VGZwdkg1TUlNTUdNRTdvYjg0VG1CeApUOXY5YlFoRVY1Z2dOSkdFVGcyZXMrTmI1VVdOMzh1M0RPdjNsVjI5cHZQZHpQdWE0RXgzOEVBNGJ6MzN0RXZOCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+  tls.key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb2dJQkFBS0NBUUVBcjNjYUZtTTFzYUR3WmhIallmZkFYUUUxZEU2NzltSlpFZm5ZdjBNTFVxSTJieGlNCklvcnlLM3djVkpLd3ViSTFRcFlWZVZ0TkhKbEdvU1VuVnJGVjFSWmNwOTVBeDdoVS9ZTDBhbTJ1amJQZTZoM2kKL3A0VXpVcVBIMFZnd09OR25JVlVCUGRnR0x3MSt0Nk0rWFhqak5CK3R1Y0FaWFY3V2ltR09aUFk4ZnZSR3o4OQpMNTZvUG95VHVxUDhXcVlLRjk1TGN2clp4V3VKR0NlS3RFL244L1RsR0dJSDJGdEVaVHR3dHh5c2h5eWJlOFhwCkl4REpwUytEdzJ6NmczaEVDcmJFUHBkMmduT0orMjJXWmRTaUVRSERwRk8ydWpmUkxFNUY0c21hWlBNZjMrb3EKV3k2WlR0djQyRnJMclkvUldHUURxOSt0czVCOHZsL0JnaGtMd3dJREFRQUJBb0lCQUU2Y0RGcjFUWXZyNzJlNwpJZVMxSzBBL2wyUXBGZnFYS3hKcm5kaHFQL3RnWXdTNHVhZU1HbHl5K0xwSEVkZlA2QjZSd01NaXpWUS9zeTNrCnlGQUZtTStqZWhWVzlDekYvNFdvRXJwUHMwRVcwWXFQb3kreFFONk1SYnlieDNJRElKSmxCVFJJWTR3UlhobXIKZFBzWi9yMEtkNHFYeVV5cktuMUZWellhYjdwUStmTldBRCt0ZHZJdzl2NmN6aXAvRUZESlFiWDRBcGtSYlZpYwpUV0FsRHdKUmppV0VNVUZ5NnhVakk2UFhEeFNUQ2VNeUFwdXNvWWkvU3FQTHlNRnMrZzkxc0dRL1owWnhmYzA4CjVXZEJlc0U1R2o5ZC9IeDlBNzNtRCtadG1RMHd5M1ZrNmErUDg0enFKMjJtbldNOU9aTEl6T2t5WkVLRmM2ZFIKUWlBcUFaRUNnWUVBMlFrWndEVTY1UUlQRkhvWGFpcE1GdUpDaE5wRVZBTDF6dnByeElMM1VsNWRaeEdkQ2cyUQp1OFB5TmRKNDc4YzU1Qmp0elNqQkJwS2F4aHJReTErOGdjRHAvTGtPUXBKeTMzR0UyTFJibUVhN2pZYzJ6K085CjdrS1BLQllQVER0b1J3R0Zsd2paRmNiZEo0QUR0ZXNBdGFZNDJRdVltazBsM3J5WElhVlZ1b3NDZ1lFQXp2ZHcKdnZVN0ExbTNuZHdVektYQVdTTHJLSXRibXFIZ1pxWDYvTWRoTUV6eXpZYXZCN003RXhhSnMxMUpweHpBckhmRApGdUZBUFlMSnVSKzhHWXBwU2praG03bjA1NXkvRm9zKzdGYStUNTFvUTQzdE4vQXhaT296bjBHQm9KZ1EvaVpVCm5EWDkxNy9zQkRqeFIvSzN1MXZ2R0V4MWNzdkNyOUp1YWM4dGNxa0NnWUFsRENPa0pySDE4NE1GZU0zVVpvSDAKaWd6V3hyZFJLK3d2dDVsN3d1dGEyUmJTaURRcFNpV0JsN0lacytMRzgxZ1RjcG50SWw3SXMyL09EemZDNzRXcgpGSFljbUs0eGVQUTQ1aFRLTlFkSm1CRmQyRTNuOExVMEhaSjRRa084UEl2UlN4WTFzT0gxa0t1aG1YMklxU1BHCjNpZm9ETTJ3MFNoOHUrNkVaTWVjZndLQmdCNFM0SVF1K0RORmJ5UDJIZU9hMWpkZGxwUWVvK0gxVWJrNHR4N1MKRGZKSnpDSkhSdG0wbG9ud2hYUFZ3MlVRRFlOQ0o4d0VVU1JmQTlidG9KU0pnMEV3eWd4cDJnZHB4RzZQTDBhQwpXRWNUVlZvem5sdTVnRVBzc0RHZEFDd0l6TGRSZEl2NllIZGdRUGhnR2RkZGtvc2NFY01USVNIY0w5OENrZDY0Ckp4OTVBb0dBWmUrZTJLZzZjQW5FYWNRMWhUUjM2aVMyd1FMaUZxenIzY1UvYllxYjNibklYVG5XVE9laFJPdmcKTGNOeDNkWnJOS2FkQ1N3OVdqaUhaNExYSlAwbFlCdHBUTExQU2psU0NiWlhJU0FSeFQ0Y0xqNDViNGFibTg2ZAp6dUFPNklBdm5hc3NNOUY5aHpKOEJVdDIwaXFXV256NEVoRmduZmxiaFFpN2NFSkVCTUk9Ci0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg==
+kind: Secret
 metadata:
-  name: gateway-service
-spec:
-  replicas: 1
-  selector: 
-    matchLabels:
-      app: gateway-service
-  template: 
-    metadata: 
-      labels: 
-        app: gateway-service
-    spec:
-      serviceAccountName: api-gateway
-      containers:
-      - name: gateway
-        image: registry.gitlab.com/isaiahwong/cluster/api/gateway
-        imagePullPolicy: IfNotPresent
-        ports:
-        - name: gateway-port
-          containerPort: 5000
-        - name: webhook-port
-          containerPort: 50051
-
-        envFrom:
-        - configMapRef:
-            name: gateway-env-configmap
-
-        # resources:
-        #   requests:
-        #     cpu: 50m
-        #     memory: 64Mi
-        #   limits:
-        #     cpu: 80m
-        #     memory: 128Mi
-
-        # readinessProbe:
-        #   httpGet:
-        #     path: /hz
-        #     port: 5000
-        #   initialDelaySeconds: 60
-        #   periodSeconds: 120
-        
-        livenessProbe:
-          httpGet:
-            path: /hz
-            port: 5000
-          initialDelaySeconds: 60
-          periodSeconds: 120
-
-      imagePullSecrets:
-      - name: gitlab-auth
+  name: webhook-server-tls
+  namespace: gateway
+type: kubernetes.io/tls
