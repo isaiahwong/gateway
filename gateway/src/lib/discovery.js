@@ -161,7 +161,7 @@ class Discovery extends EventEmitter {
         break;
       }
       case 'DELETE': {
-        this.delete(name, namespace);
+        this._delete(name, namespace);
         break;
       }
       default:

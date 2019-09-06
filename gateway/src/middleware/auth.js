@@ -13,6 +13,7 @@ const AUTH_SERVICE = process.env.AUTH_SERVICE || 'auth-service.default';
  * Authentication Middleware
  */
 export default async function auth(req, res, next) {
+  console.log(!discovery.services[AUTH_SERVICE])
   if (!discovery.services || !discovery.services[AUTH_SERVICE]) {
     logger.warn('Auth service is not discovered or not defined. You can define an auth service in your environment AUTH_SERVICE=auth-service');
     next(); return;
