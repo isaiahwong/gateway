@@ -45,6 +45,9 @@ spec:
   - name: https
     port: 443
     targetPort: webhook-port
+  - name: admin
+    port: 8080
+    targetPort: admin-port
   selector: 
     app: gateway-service
   type: ClusterIP
@@ -102,6 +105,8 @@ spec:
           containerPort: 5000
         - name: webhook-port
           containerPort: 8443
+        - name: admin-port
+          containerPort: 8080
 
         envFrom:
         - configMapRef:

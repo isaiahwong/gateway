@@ -10,6 +10,7 @@ const path = require('path');
 const logger = require('esther');
 const pkg = require('../package.json');
 const HttpServer = require('./server');
+const AdminServer = require('./admin');
 const WebhookServer = require('./webhook');
 const grpcLoader = require('./lib/grpcLoader');
 
@@ -39,7 +40,9 @@ grpcLoader.loadProtos(protos, PROTO_PATH);
 
 const webhook = new WebhookServer();
 const server = new HttpServer();
+const admin = new AdminServer();
 server.protos = protos;
 
 server.listen();
 webhook.listen();
+admin.listen();

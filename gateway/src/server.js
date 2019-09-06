@@ -1,9 +1,7 @@
-import express from 'express';
-import http from 'http';
 import helmet from 'helmet';
-import logger from 'esther';
 import compression from 'compression';
 
+import Http from './lib/http';
 import { setupLanguage } from './lib/i18n';
 
 // Middleware
@@ -16,23 +14,22 @@ import errorHandler from './middleware/errorHandler';
 import discovery from './middleware/discovery';
 import topLevelRoutes from './middleware/topLevelRoutes';
 
-class HttpServer {
+class HttpServer extends Http {
   /**
    * @param {Object} options
    * @param {String} options.port Http Port
-   * @param {Number} options.appEnv Sets server environment
+   * @param {Number} options.nodeEnv Sets server environment
    */
   constructor(options = {}) {
-    this.appEnv = options.appEnv || __PROD__ ? 'production' : 'development';
-    this.server = http.createServer();
-    this.app = express();
+    const { nodeEnv, port } = options;
+    super({
+      nodeEnv,
+      port: port || process.env.PORT || 5000,
+      name: 'Gateway Server'
+    });
 
     // Setup locales
     setupLanguage();
-    this.app.set('port', options.port || process.env.PORT || 5000);
-
-    // secure app by setting various HTTP headers.
-    this.app.use(helmet());
   }
 
   set protos(protos) {
@@ -69,12 +66,7 @@ class HttpServer {
 
   async listen() {
     await this.attachMiddleware({ server: this.server, protos: this._protos });
-
-    this.server.on('request', this.app);
-    this.server.listen(this.app.get('port'), () => {
-      logger.info(`Node Server listening on port ${this.app.get('port')}`);
-      logger.info(`Running ${this.appEnv}`);
-    });
+    super.listen();
   }
 }
 

@@ -16,7 +16,6 @@ let router = new express.Router();
 /** Service Counter to keep track of existing services. */
 
 async function _proxyHttp(serviceName, dnsPath, port, path) {
-  logger.info(`[HTTP] Proxying to ${serviceName}`);
   router.use(path, [auth], (req, res) => {
     /** Proxies request to matched service */
     Proxy.web(req, res, {
@@ -33,18 +32,21 @@ async function _proxyGrpc(serviceName, dnsPath, port) {
   catch (err) {
     logger.error(err);
   }
+  /**
+   * Extracts the http options specified in protobuf
+   */
   const httpOptions = grpcProxy.getHttpOptions(serviceName);
 
-  logger.info(`[GRPC] Proxying to ${serviceName}`);
   // Create router mappings for GRPC methods with http endpoints
   httpOptions.forEach(({ path: httpPath, method, body }) => {
     if (!httpPath || !method) {
       logger.warn(`${!httpPath && 'Http path and ' || ''} ${!method && 'method' || ''} is not defined.`);
       return;
     }
+    // express router
     router[method](
       httpPath,
-      [
+      [ // Middleware
         bodyParser.urlencoded({ extended: false }),
         bodyParser.json({
           verify(req, res, buf) {

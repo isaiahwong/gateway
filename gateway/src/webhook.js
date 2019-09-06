@@ -1,5 +1,3 @@
-import fs from 'fs';
-import https from 'https';
 import express from 'express';
 import logger from 'esther';
 import bodyParser from 'body-parser';
@@ -8,27 +6,44 @@ import responseHandler from './middleware/responseHandler';
 import notFound from './middleware/notFound';
 import errorHandler from './middleware/errorHandler';
 
+import Http from './lib/http';
 import discovery from './lib/discovery';
 
-class WebhookServer {
+class WebhookServer extends Http {
   constructor(options = {}) {
     const {
       nodeEnv,
       port,
       disableClient = process.env.DISABLE_K8S_CLIENT === 'true'
     } = options;
+    super({
+      nodeEnv,
+      port: port || process.env.WEBHOOK_PORT || 8443,
+      tls: true,
+      keyDir: '/run/secrets/tls/tls.key',
+      certDir: '/run/secrets/tls/tls.crt',
+      name: 'Webhook Server'
+    });
     this.disableClient = disableClient;
 
-    if (this.disableClient) return;
+    this.attachMiddleware();
 
-    this.nodeEnv = nodeEnv || 'development';
-    this.app = express();
-
-    const key = fs.readFileSync('/run/secrets/tls/tls.key', 'utf8');
-    const cert = fs.readFileSync('/run/secrets/tls/tls.crt', 'utf8');
-
-    this.server = https.createServer({ key, cert });
-    this.app.set('port', port || process.env.WEBHOOK_PORT || 8443);
+    Object.getOwnPropertyNames((Object.getPrototypeOf(this)))
+      .forEach((prop) => {
+        if (prop === 'constructor') {
+          return;
+        }
+        if (typeof this[prop] === 'function') {
+          const initialFn = this[prop].bind(this);
+          this[prop] = (...args) => {
+            if (this.disableClient) {
+              logger.warn('K8S is disabled');
+              return null;
+            }
+            return initialFn(...args);
+          };
+        }
+      });
   }
 
   static routes() {
@@ -59,20 +74,6 @@ class WebhookServer {
 
     this.app.use(notFound);
     this.app.use(errorHandler);
-  }
-
-  listen() {
-    if (this.disableClient) return;
-    const router = new express.Router();
-    router.use(bodyParser.json());
-
-    this.attachMiddleware();
-
-    this.server.on('request', this.app);
-    this.server.listen(this.app.get('port'), () => {
-      logger.info(`Webhook Server listening on port ${this.app.get('port')}`);
-      logger.info(`Running ${this.nodeEnv}`);
-    });
   }
 }
 

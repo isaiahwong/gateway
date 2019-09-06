@@ -175,7 +175,7 @@ class GrpcProxy {
     client[rpcCall](payload, metadata, (err, response) => {
       if (err) {
         if (err.metadata) {
-          const error = decodeMetadata('object', err.metadata);
+          const error = decodeMetadata('metadata', err.metadata);
           delete err.metadata;
           if (error) {
             Object.keys(error).forEach((key) => {

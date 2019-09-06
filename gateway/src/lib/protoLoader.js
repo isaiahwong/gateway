@@ -125,10 +125,10 @@ function mapHttpOptions(options) {
     patch: 'patch',
   }
   const httpOptions = Object.keys(options).reduce((accum, key) => {
-    if (!key.match('http.')) {
+    if (!key.match('(google.api.http).')) {
       return accum;
     }
-    const method = httpMethods[key.replace('http.', '')];
+    const method = httpMethods[key.replace('(google.api.http).', '')];
     if (method) {
       accum.path = options[key];
       accum.method = method;

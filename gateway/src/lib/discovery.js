@@ -33,12 +33,17 @@ class Discovery extends EventEmitter {
   constructor() {
     super();
     this.services = {};
+    this.serviceCount = 0;
     this.labelResourceType = process.env.LABEL_RESOURCE_TYPE || 'api-service';
 
-    this._createService = this._createService.bind(this);
+    this._create = this._create.bind(this);
   }
 
-  _createService(object) {
+  updateCount() {
+    this.serviceCount = Object.keys(this.services).length;
+  }
+
+  _create(object) {
     if (!object) {
       logger.warn('Require kubernetes object'); return;
     }
@@ -106,6 +111,12 @@ class Discovery extends EventEmitter {
       apiVersion,
       resourceType,
     });
+    this.updateCount();
+  }
+
+  _delete(name, namespace) {
+    delete this.services[`${name}.${namespace}`];
+    this.updateCount();
   }
 
   getServiceIncludesUrl(url = '') {
@@ -123,7 +134,7 @@ class Discovery extends EventEmitter {
         })
       )))
       .filter(arr => !!arr.length)
-      .forEach(services => services.forEach(this._createService));
+      .forEach(services => services.forEach(this._create));
     return this.services;
   }
 
@@ -146,12 +157,11 @@ class Discovery extends EventEmitter {
     switch (operation) {
       case 'CREATE': {
         if (!object) return;
-        this._createService(object);
-        this.emit('discover', this.services);
+        this._create(object);
         break;
       }
       case 'DELETE': {
-        delete this.services[`${name}.${namespace}`];
+        this.delete(name, namespace);
         break;
       }
       default:
