@@ -13,15 +13,18 @@ const AUTH_SERVICE = process.env.AUTH_SERVICE || 'auth-service.default';
  * Authentication Middleware
  */
 export default async function auth(req, res, next) {
-  console.log(!discovery.services[AUTH_SERVICE])
   if (!discovery.services || !discovery.services[AUTH_SERVICE]) {
-    logger.warn('Auth service is not discovered or not defined. You can define an auth service in your environment AUTH_SERVICE=auth-service');
-    next(); return;
+    logger.warn(
+      'Auth service is not discovered or not defined. You can define an auth service in your environment AUTH_SERVICE=auth-service'
+    );
+    next();
+    return;
   }
   const service = discovery.getServiceIncludesUrl(req.originalUrl);
 
   if (!service) {
-    next(); return;
+    next();
+    return;
   }
 
   const { dnsPath: authName, ports } = discovery.services[AUTH_SERVICE];
@@ -39,10 +42,7 @@ export default async function auth(req, res, next) {
   }
 
   const {
-    authentication: {
-      required,
-      exclude
-    } = {
+    authentication: { required, exclude } = {
       required: 'false',
       exclude: []
     }
@@ -50,7 +50,8 @@ export default async function auth(req, res, next) {
 
   // Env are treated as strings hence comparing it to literal value
   if (required === 'false') {
-    next(); return;
+    next();
+    return;
   }
 
   const excludePath = exclude.find((path) => {
@@ -60,19 +61,19 @@ export default async function auth(req, res, next) {
   });
 
   if (excludePath) {
-    next(); return;
+    next();
+    return;
   }
 
   // Query auth service
-  const response = await fetch(
-    `http://${authName}:${authPort}${authPath}`,
-    {
-      method: 'post',
-      headers: req.headers,
-    });
+  const response = await fetch(`http://${authName}:${authPort}${authPath}`, {
+    method: 'post',
+    headers: req.headers
+  });
 
   if (response.status > 204) {
-    next(new NotAuthorized()); return;
+    next(new NotAuthorized());
+    return;
   }
   next();
 }
