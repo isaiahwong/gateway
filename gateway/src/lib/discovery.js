@@ -19,13 +19,66 @@ export class ApiService {
       'apiVersion',
       'resourceType',
     ];
+
+    const optionals = [
+      'method'
+    ];
+
     // eslint-disable-next-line no-return-assign
     properties.forEach((key) => {
       if (!args[key]) {
-        logger.error(new InternalServerError(`ApiService Constructor: ${key} is required`));
+        logger.error(
+          new InternalServerError(`ApiService Constructor: ${key} is required`)
+        );
       }
       this[key] = args[key];
     });
+
+    // eslint-disable-next-line no-return-assign
+    optionals.forEach(key => this[key] = args[key]);
+  }
+}
+
+class Method {
+  static GET = 'get';
+
+  static POST = 'post';
+
+  static USE = 'use';
+
+  constructor() {
+    throw new InternalServerError('Do not instantiate. Use static types only');
+  }
+
+  static isValid(resourceType) {
+    switch (resourceType) {
+      case Method.GET:
+      case Method.POST:
+      case Method.USE:
+        return true;
+      default:
+        return false;
+    }
+  }
+}
+
+class ResourceType {
+  static ApiService = 'api-service';
+
+  static ClientService = 'client-service';
+
+  constructor() {
+    throw new InternalServerError('Do not instantiate. Use static types only');
+  }
+
+  static isValid(resourceType) {
+    switch (resourceType) {
+      case ResourceType.ApiService:
+      // case ResourceType.ClientService:
+        return true;
+      default:
+        return false;
+    }
   }
 }
 
@@ -34,8 +87,6 @@ class Discovery extends EventEmitter {
     super();
     this.services = {};
     this.serviceCount = 0;
-    this.labelResourceType = process.env.LABEL_RESOURCE_TYPE || 'api-service';
-
     this._create = this._create.bind(this);
   }
 
@@ -45,7 +96,8 @@ class Discovery extends EventEmitter {
 
   _create(object) {
     if (!object) {
-      logger.warn('Require kubernetes object'); return;
+      logger.warn('Require kubernetes object');
+      return;
     }
 
     const {
@@ -54,27 +106,34 @@ class Discovery extends EventEmitter {
     } = object;
 
     if (!metadata) {
-      logger.warn('metadata not defined'); return;
+      logger.warn('metadata not defined');
+      return;
     }
     // Filters resource not labeled api-service
     // TODO Condition to be refactored with configurations
-    if (!metadata.labels
-      || !metadata.labels.resourceType
-      || metadata.labels.resourceType !== this.labelResourceType) {
-      logger.warn(`resourceType is not of ${this.labelResourceType}`);
+    if (!metadata.labels || !metadata.labels.resourceType) {
+      logger.warn('resourceType not defined.');
+      return;
+    }
+    if (!ResourceType.isValid(metadata.labels.resourceType)) {
+      logger.warn('Invalid resource type');
       return;
     }
     if (!spec) {
-      logger.warn('spec not defined'); return;
+      logger.warn('spec not defined');
+      return;
     }
     if (!spec.ports) {
-      logger.warn('spec ports not defined'); return;
+      logger.warn('spec ports not defined');
+      return;
     }
 
     let serviceConfig;
     const {
-      annotations, labels: { resourceType },
-      namespace, name: serviceName,
+      annotations,
+      labels: { resourceType },
+      namespace,
+      name: serviceName
     } = metadata;
 
     const name = `${serviceName}.${namespace}`;
@@ -99,10 +158,17 @@ class Discovery extends EventEmitter {
       }
     }
     // eslint-disable-next-line object-curly-newline
-    const { path, apiVersion, authentication } = serviceConfig;
+    const { path, apiVersion, authentication, method } = serviceConfig;
+
+    // We assign method get to client resource type
+    const _method = resourceType === ResourceType.ClientService
+      ? Method.GET
+      : (Method.isValid(method) && method) || Method.USE;
 
     this.services[name] = new ApiService({
-      path: ((!path || !isURL(path)) && path) || `/api/${apiVersion || 'v1'}/${serviceName}`,
+      path:
+        ((!path || !isURL(path)) && path)
+        || `/api/${apiVersion || 'v1'}/${serviceName}`,
       dnsPath: `${name}.svc.cluster.local`,
       ports: spec.ports,
       authentication,
@@ -110,6 +176,7 @@ class Discovery extends EventEmitter {
       namespace,
       apiVersion,
       resourceType,
+      method: _method
     });
     this.updateCount();
   }
@@ -127,17 +194,23 @@ class Discovery extends EventEmitter {
   async getAllServices() {
     const namespaces = await k8sClient.getNamespaces();
 
-    (await Promise.all(namespaces
-      .map(({ metadata: { name: namespace } }) => k8sClient
-        .getServices(namespace, {
-          resourceType: process.env.LABEL_RESOURCE_TYPE || this.labelResourceType
-        })
-      )))
+    (await Promise.all(
+      namespaces.map(({ metadata: { name: namespace } }) => k8sClient.getServices(namespace)
+      )
+    ))
       .filter(arr => !!arr.length)
-      .forEach(services => services.forEach(this._create));
+      .forEach(services => services
+        .filter(
+          service => service
+              && service.metadata
+              && service.metadata.labels
+              && service.metadata.labels.resourceType
+              && ResourceType.isValid(service.metadata.labels.resourceType)
+        )
+        .forEach(this._create)
+      );
     return this.services;
   }
-
 
   discover(payload) {
     if (!payload || !payload.request) {
@@ -145,8 +218,7 @@ class Discovery extends EventEmitter {
     }
     const {
       request: {
-        operation, kind,
-        object, name, namespace
+        operation, kind, object, name, namespace
       }
     } = payload;
 

@@ -13,6 +13,20 @@ const AUTH_SERVICE = process.env.AUTH_SERVICE || 'auth-service.default';
  * Authentication Middleware
  */
 export default async function auth(req, res, next) {
+  const service = discovery.getServiceIncludesUrl(req.originalUrl);
+
+  if (!service) {
+    next();
+    return;
+  }
+
+  const {
+    authentication: { required, exclude } = {
+      required: 'false',
+      exclude: []
+    }
+  } = service;
+
   if (!discovery.services || !discovery.services[AUTH_SERVICE]) {
     logger.warn(
       'Auth service is not discovered or not defined. You can define an auth service in your environment AUTH_SERVICE=auth-service'
@@ -20,9 +34,9 @@ export default async function auth(req, res, next) {
     next();
     return;
   }
-  const service = discovery.getServiceIncludesUrl(req.originalUrl);
 
-  if (!service) {
+  // Env are treated as strings hence comparing it to literal value
+  if (required === 'false') {
     next();
     return;
   }
@@ -39,19 +53,6 @@ export default async function auth(req, res, next) {
   if (!authPath) {
     logger.warn('Auth path is not defined, setting to /v1/auth');
     authPath = '/api/v1/auth';
-  }
-
-  const {
-    authentication: { required, exclude } = {
-      required: 'false',
-      exclude: []
-    }
-  } = service;
-
-  // Env are treated as strings hence comparing it to literal value
-  if (required === 'false') {
-    next();
-    return;
   }
 
   const excludePath = exclude.find((path) => {

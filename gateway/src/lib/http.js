@@ -8,21 +8,23 @@ import { capitalize } from 'lodash';
 class Http {
   constructor(options = {}) {
     const {
-      nodeEnv,
-      port,
-      tls,
-      keyDir,
-      certDir,
-      name
+      nodeEnv, port, tls, keyDir, certDir, name
     } = options;
 
     let key;
     let cert;
 
     if (tls) {
-      key = fs.readFileSync(keyDir, 'utf8');
-      cert = fs.readFileSync(certDir, 'utf8');
-      this.server = https.createServer({ key, cert });
+      try {
+        key = fs.readFileSync(keyDir, 'utf8');
+        cert = fs.readFileSync(certDir, 'utf8');
+        this.server = https.createServer({ key, cert });
+      }
+      catch (err) {
+        logger.error(err);
+        logger.warn('Creating Http server instead');
+        this.server = http.createServer();
+      }
     }
     else {
       this.server = http.createServer();
@@ -38,7 +40,11 @@ class Http {
   listen() {
     this.server.on('request', this.app);
     this.server.listen(this.app.get('port'), () => {
-      logger.info(`[${capitalize(this.nodeEnv)}] ${this.name} listening on port ${this.app.get('port')}`);
+      logger.info(
+        `[${capitalize(this.nodeEnv)}] ${
+          this.name
+        } listening on port ${this.app.get('port')}`
+      );
     });
   }
 }

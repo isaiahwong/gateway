@@ -15,8 +15,8 @@ const grpcProxy = new GrpcProxy();
 let router = new express.Router();
 /** Service Counter to keep track of existing services. */
 
-async function _proxyHttp(serviceName, dnsPath, port, path) {
-  router.use(path, [auth], (req, res) => {
+async function _proxyHttp(method, dnsPath, port, path) {
+  router[method](path, [auth], (req, res) => {
     /** Proxies request to matched service */
     Proxy.web(req, res, {
       target: `http://${dnsPath}:${port}${path}`
@@ -40,41 +40,44 @@ async function _proxyGrpc(serviceName, dnsPath, port) {
   // Create router mappings for GRPC methods with http endpoints
   httpOptions.forEach(({ path: httpPath, method, body }) => {
     if (!httpPath || !method) {
-      logger.warn(`${!httpPath && 'Http path and ' || ''} ${!method && 'method' || ''} is not defined.`);
+      logger.warn(
+        `${(!httpPath && 'Http path and ') || ''} ${(!method && 'method')
+          || ''} is not defined.`
+      );
       return;
     }
     // express router
     router[method](
       httpPath,
-      [ // Middleware
+      [
+        // Middleware
         bodyParser.urlencoded({ extended: false }),
         bodyParser.json({
           verify(req, res, buf) {
             if (req.originalUrl && req.originalUrl.includes('/webhook')) {
               req.buf = buf;
             }
-          },
+          }
         }),
         auth
       ],
       async (req, res, next) => {
         try {
-          await grpcProxy.call(req, res, next,
-            {
-              serviceName,
-              dnsPath,
-              port,
-              method,
-              body
-            }
-          );
+          await grpcProxy.call(req, res, next, {
+            serviceName,
+            dnsPath,
+            port,
+            method,
+            body
+          });
           return;
         }
         catch (err) {
           logger.error(err);
           next(err);
         }
-      });
+      }
+    );
   });
 }
 
@@ -92,23 +95,18 @@ async function applyRoutes(services) {
     }
 
     const {
-      serviceName,
-      ports,
-      path,
-      dnsPath
+      serviceName, ports, path, dnsPath, method
     } = service;
 
     ports.forEach((_port) => {
-      const {
-        port,
-        name: portName
-      } = _port;
+      const { port, name: portName } = _port;
 
       switch (portName) {
         case 'grpc':
-          _proxyGrpc(serviceName, dnsPath, port); break;
+          _proxyGrpc(serviceName, dnsPath, port);
+          break;
         default:
-          _proxyHttp(serviceName, dnsPath, port, path);
+          _proxyHttp(method, dnsPath, port, path);
       }
     });
   });
