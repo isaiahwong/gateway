@@ -45,7 +45,7 @@
     "kubernetes-client": "^6.11.0",
     "lodash": "^4.17.14",
     "morgan": "^1.9.0",
-    "node-fetch": "^2.3.0",
+    "node-fetch": "^2.6.1",
     "path-to-regexp": "^3.0.0",
     "promise": "^8.0.1",
     "protobufjs": "^6.8.8",
