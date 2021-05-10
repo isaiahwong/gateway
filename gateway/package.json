@@ -43,7 +43,7 @@
     "horeb": "^1.1.2",
     "http-proxy": "^1.17.0",
     "kubernetes-client": "^6.11.0",
-    "lodash": "^4.17.14",
+    "lodash": "^4.17.21",
     "morgan": "^1.9.0",
     "node-fetch": "^2.3.0",
     "path-to-regexp": "^3.0.0",
