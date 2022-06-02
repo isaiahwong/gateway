@@ -48,7 +48,7 @@
     "node-fetch": "^2.3.0",
     "path-to-regexp": "^3.0.0",
     "promise": "^8.0.1",
-    "protobufjs": "^6.8.8",
+    "protobufjs": "^6.11.3",
     "redis": "^2.8.0",
     "swagger-fluent": "^3.1.2",
     "validator": "^11.1.0",
