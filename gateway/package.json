@@ -82,7 +82,7 @@
     "mocha": "^5.2.0",
     "nodemon": "^1.18.7",
     "sinon": "^7.3.2",
-    "snyk": "^1.134.2",
+    "snyk": "^1.1012.0",
     "webpack": "^4.32.2",
     "webpack-cli": "^3.3.2",
     "webpack-node-externals": "^1.7.2"
