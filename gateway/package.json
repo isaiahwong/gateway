@@ -84,7 +84,7 @@
     "sinon": "^7.3.2",
     "snyk": "^1.134.2",
     "webpack": "^4.32.2",
-    "webpack-cli": "^3.3.2",
+    "webpack-cli": "^3.3.12",
     "webpack-node-externals": "^1.7.2"
   },
   "pkg": {
