@@ -36,7 +36,7 @@
     "deepmerge": "^3.2.0",
     "dotenv": "^4.0.0",
     "esther": "^1.0.8",
-    "express": "^4.16.0",
+    "express": "^4.17.3",
     "grpc": "^1.20.0",
     "grpc-utils": "^1.0.14",
     "helmet": "^3.9.0",
